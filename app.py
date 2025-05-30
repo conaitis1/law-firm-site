@@ -1,54 +1,57 @@
 import streamlit as st
 import pandas as pd
 
+# Load data
 @st.cache_data
+
 def load_data():
-    return pd.read_excel("modified_law_firm_data.xlsx", engine="openpyxl")
+    df = pd.read_excel("modified_law_firm_data.xlsx", engine="openpyxl")
+    df = df.dropna(axis=1, how='all')  # Drop columns with all NaN values
+    return df
 
 df = load_data()
 
-st.set_page_config(page_title="📊 Law Firm Case Explorer", layout="wide")
-st.title("📊 Law Firm Case Explorer")
-st.markdown("Filter and explore legal cases based on law firms, outcomes, and financials.")
+# Title
+st.title("Law Firm Case Explorer")
+st.write("Filter and explore legal cases based on law firms, outcomes, and financials.")
 
-# Sidebar Filters
+# Sidebar filters
 with st.sidebar:
-    st.header("🔍 Filter Cases")
+    st.header("Filter Options")
 
-    firm1 = st.text_input("Plaintiff Firm")
-    firm2 = st.text_input("Defendant Firm")
+    firm1 = st.text_input("Search Plaintiff Firm")
+    firm2 = st.text_input("Search Defendant Firm")
 
     status = st.selectbox("Case Status", ["All"] + sorted(df["CaseStatus"].dropna().unique()))
-    casename = st.text_input("Case Name")
-    sic_code = st.text_input("SIC Code")
+    court = st.selectbox("Federal Court", ["All"] + sorted(df["FederalCourt"].dropna().unique()))
+    judge = st.selectbox("Federal Judge", ["All"] + sorted(df["FederalJudge"].dropna().unique()))
+    sec_action = st.selectbox("SEC Action", ["All"] + sorted(df["SECActionYN"].dropna().unique()))
+    bankruptcy = st.selectbox("Bankruptcy Case", ["All"] + sorted(df["BankruptcyCaseYN"].dropna().unique()))
 
-    class_start = st.date_input("Class Start Date", value=None)
-    class_end = st.date_input("Class End Date", value=None)
-
-    # Optional flag-based filters
-    flags = ["Alleged GAAP Violations", "Restatement of Financials", "Insider Trading",
-             "SEC Investigation", "Criminal Charges", "DOJ Investigation"]
-    flag_filters = {}
-    for flag in flags:
-        flag_filters[flag] = st.checkbox(flag)
-
-# Filter logic
-filtered = df.copy()
+# Filtering logic
+filtered_df = df.copy()
 
 if firm1:
-    filtered = filtered[filtered["PlaintiffFirm"].str.contains(firm1, case=False, na=False)]
+    filtered_df = filtered_df[filtered_df['Plaintiff Firms'].str.contains(firm1, case=False, na=False)]
+
 if firm2:
-    filtered = filtered[filtered["DefendantFirm"].str.contains(firm2, case=False, na=False)]
+    filtered_df = filtered_df[filtered_df['Defendant Firms'].str.contains(firm2, case=False, na=False)]
+
 if status != "All":
-    filtered = filtered[filtered["CaseStatus"] == status]
-if casename:
-    filtered = filtered[filtered["CaseName"].str.contains(casename, case=False, na=False)]
-if sic_code:
-    filtered = filtered[filtered["SICCode"].astype(str).str.contains(sic_code, na=False)]
+    filtered_df = filtered_df[filtered_df["CaseStatus"] == status]
 
-for flag, active in flag_filters.items():
-    if active and flag in filtered.columns:
-        filtered = filtered[filtered[flag] == "Yes"]
+if court != "All":
+    filtered_df = filtered_df[filtered_df["FederalCourt"] == court]
 
-st.markdown(f"### 📁 {len(filtered)} Matching Cases")
-st.dataframe(filtered, use_container_width=True)
+if judge != "All":
+    filtered_df = filtered_df[filtered_df["FederalJudge"] == judge]
+
+if sec_action != "All":
+    filtered_df = filtered_df[filtered_df["SECActionYN"] == sec_action]
+
+if bankruptcy != "All":
+    filtered_df = filtered_df[filtered_df["BankruptcyCaseYN"] == bankruptcy]
+
+# Display filtered results
+st.write(f"### Showing {len(filtered_df)} Matching Cases")
+st.dataframe(filtered_df)
