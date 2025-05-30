@@ -52,16 +52,16 @@ if transactional != "All":
     filtered_df = filtered_df[filtered_df["TransactionalYN"] == transactional]
 
 if it != "All":
-    filtered_df = filtered_df[filtered_df["IT_YN"] == it]
+    filtered_df = filtered_df[filtered_df["IT YN"] == it]
 
 if gaap != "All":
-    filtered_df = filtered_df[filtered_df["GAAP_YN"] == gaap]
+    filtered_df = filtered_df[filtered_df["GAAP YN"] == gaap]
 
 if restated != "All":
     filtered_df = filtered_df[filtered_df["RestatedFinancialsYN"] == restated]
 
 if sec11 != "All":
-    filtered_df = filtered_df[filtered_df["SEC_11_YN"] == sec11]
+    filtered_df = filtered_df[filtered_df["SEC 11 YN"] == sec11]
 
 if secaction != "All":
     filtered_df = filtered_df[filtered_df["SECActionYN"] == secaction]
