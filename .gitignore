@@ -1,0 +1,13 @@
+# Ignore Python environment & system files
+venv/
+__pycache__/
+*.pyc
+#*.xlsx
+*.csv
+.DS_Store
+*.bak
+*.tmp
+.streamlit/
+
+# Ignore VS Code settings
+.vscode/
