@@ -56,13 +56,13 @@ if sec_action != "All":
 
 # Plaintiff and Defendant firm filters (2 each)
 if plaintiff_firm_1:
-    filtered_df = filtered_df[filtered_df['Plaintiff Firms'].str.contains(plaintiff_firm_1, case=False, na=False)]
+    filtered_df = filtered_df[filtered_df['PlaintiffFirms'].str.contains(plaintiff_firm_1, case=False, na=False)]
 if plaintiff_firm_2:
-    filtered_df = filtered_df[filtered_df['Plaintiff Firms'].str.contains(plaintiff_firm_2, case=False, na=False)]
+    filtered_df = filtered_df[filtered_df['PlaintiffFirms'].str.contains(plaintiff_firm_2, case=False, na=False)]
 if defendant_firm_1:
-    filtered_df = filtered_df[filtered_df['Defendant Firms'].str.contains(defendant_firm_1, case=False, na=False)]
+    filtered_df = filtered_df[filtered_df['DefendantFirms'].str.contains(defendant_firm_1, case=False, na=False)]
 if defendant_firm_2:
-    filtered_df = filtered_df[filtered_df['Defendant Firms'].str.contains(defendant_firm_2, case=False, na=False)]
+    filtered_df = filtered_df[filtered_df['DefendantFirms'].str.contains(defendant_firm_2, case=False, na=False)]
 
 # Display
 st.title("📊 Law Firm Case Explorer")
