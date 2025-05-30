@@ -71,7 +71,7 @@ if tenb5 != "All":
 
 st.dataframe(filtered_df[[
     "CaseID", "CaseStatus", "CaseName", "SICCode", "ClassStartDate", "ClassEndDate", "FederalFilingDate",
-    "PO YN", "IPO YN", "LadderingYN", "TransactionalYN", "IT_YN", "GAAP_YN", "RestatedFinancialsYN",
-    "10B 5 YN", "SEC_11_YN", "SECActionYN", "CaseLawFirmRole", "Plaintiff Firms", "Defendant Firms",
+    "PO YN", "IPO YN", "LadderingYN", "TransactionalYN", "IT YN", "GAAP YN", "RestatedFinancialsYN",
+    "10B 5 YN", "SEC 11 YN", "SECActionYN", "CaseLawFirmRole", "Plaintiff Firms", "Defendant Firms",
     "CashAmount", "TotalAmount"
 ]])
