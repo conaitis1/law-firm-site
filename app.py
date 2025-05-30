@@ -6,6 +6,7 @@ import pandas as pd
 
 def load_data():
     df = pd.read_excel("modified_law_firm_data.xlsx", engine="openpyxl")
+    df["FederalCaseNumber"] = df["FederalCaseNumber"].astype(str)
     df = df.dropna(axis=1, how='all')  # Drop columns with all NaN values
     return df
 
@@ -32,10 +33,10 @@ with st.sidebar:
 filtered_df = df.copy()
 
 if firm1:
-    filtered_df = filtered_df[filtered_df['PlaintiffFirms'].apply(lambda x: firm1.lower() in "; ".join(x).lower() if isinstance(x, list) else False)]
+    filtered_df = filtered_df[filtered_df['Plaintiff Firms'].str.contains(firm1, case=False, na=False)]
 
 if firm2:
-    filtered_df = filtered_df[filtered_df['DefendantFirms'].apply(lambda x: firm2.lower() in "; ".join(x).lower() if isinstance(x, list) else False)]
+    filtered_df = filtered_df[filtered_df['Defendant Firms'].str.contains(firm2, case=False, na=False)]
 
 if status != "All":
     filtered_df = filtered_df[filtered_df["CaseStatus"] == status]
