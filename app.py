@@ -5,7 +5,7 @@ import pandas as pd
 
 def load_data():
     df = pd.read_excel("modified_law_firm_data.xlsx", engine="openpyxl")
-    df = df.dropna(axis=1, how='all')  # Drop columns with all NaN values
+    df = df.dropna(axis=1, how='all')
     df["FederalCaseNumber"] = df["FederalCaseNumber"].astype(str)
     return df
 
@@ -27,8 +27,8 @@ with st.sidebar:
     filing_date = st.date_input("Federal Filing Date", value=None)
 
     # Binary flag fields
-    flags = ["PO_YN", "IPO_YN", "LadderingYN", "TransactionalYN", "IT_YN", "GAAP_YN",
-             "RestatedFinancialsYN", "10B_5_YN", "SEC_11_YN", "SECActionYN"]
+    flags = ["PO YN", "IPO YN", "LadderingYN", "TransactionalYN", "IT YN", "GAAP YN",
+             "RestatedFinancialsYN", "10B 5 YN", "SEC 11 YN", "SECActionYN"]
     flag_filters = {}
     for flag in flags:
         if flag in df.columns:
@@ -66,7 +66,7 @@ for flag, value in flag_filters.items():
 st.write(f"### {len(filtered_df)} Matching Cases")
 st.dataframe(filtered_df[[
     "CaseID", "CaseStatus", "CaseName", "SICCode", "ClassStartDate", "ClassEndDate",
-    "FederalFilingDate", "PO_YN", "IPO_YN", "LadderingYN", "TransactionalYN", "IT_YN",
-    "GAAP_YN", "RestatedFinancialsYN", "10B_5_YN", "SEC_11_YN", "SECActionYN",
-    "CaseLawFirm(Role)", "CashAmount", "TotalAmount"
+    "FederalFilingDate", "PO YN", "IPO YN", "LadderingYN", "TransactionalYN", "IT YN",
+    "GAAP YN", "RestatedFinancialsYN", "10B 5 YN", "SEC 11 YN", "SECActionYN",
+    "CaseLawFirmRole", "CashAmount", "TotalAmount"
 ]])
