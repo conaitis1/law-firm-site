@@ -32,10 +32,10 @@ with st.sidebar:
 filtered_df = df.copy()
 
 if firm1:
-    filtered_df = filtered_df[filtered_df['Plaintiff Firms'].str.contains(firm1, case=False, na=False)]
+    filtered_df = filtered_df[filtered_df['PlaintiffFirms'].apply(lambda x: firm1.lower() in "; ".join(x).lower() if isinstance(x, list) else False)]
 
 if firm2:
-    filtered_df = filtered_df[filtered_df['Defendant Firms'].str.contains(firm2, case=False, na=False)]
+    filtered_df = filtered_df[filtered_df['DefendantFirms'].apply(lambda x: firm2.lower() in "; ".join(x).lower() if isinstance(x, list) else False)]
 
 if status != "All":
     filtered_df = filtered_df[filtered_df["CaseStatus"] == status]
