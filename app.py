@@ -7,67 +7,77 @@ st.set_page_config(page_title="Law Firm Case Explorer", layout="wide")
 
 def load_data():
     df = pd.read_excel("modified_law_firm_data.xlsx", engine="openpyxl")
-    df = df.dropna(axis=1, how='all')
-    df["FederalCaseNumber"] = df["FederalCaseNumber"].astype(str)
+    df = df.dropna(axis=1, how='all')  # Drop columns with all NaN values
     return df
 
 df = load_data()
 
 st.title("📊 Law Firm Case Explorer")
-st.markdown("Filter and explore legal cases based on key legal case attributes.")
+st.markdown("""
+Filter and explore legal cases based on law firms, outcomes, and financials.
+""")
 
-# Sidebar filters with selected fields only
-with st.sidebar:
-    st.header("🔍 Filters")
-    case_id = st.text_input("Case ID")
-    status = st.selectbox("Case Status", ["All"] + sorted(df["CaseStatus"].dropna().unique()))
-    casename = st.text_input("Case Name")
-    sic_code = st.text_input("SIC Code")
-    class_start = st.date_input("Class Start Date", value=None)
-    class_end = st.date_input("Class End Date", value=None)
-    filing_date = st.date_input("Federal Filing Date", value=None)
+# --- Filters ---
+plaintiff_firm1 = st.text_input("🔎 Plaintiff Firm 1 (contains):")
+plaintiff_firm2 = st.text_input("🔎 Plaintiff Firm 2 (contains):")
+defendant_firm1 = st.text_input("🔍 Defendant Firm 1 (contains):")
+defendant_firm2 = st.text_input("🔍 Defendant Firm 2 (contains):")
 
-    # Binary flag fields
-    flags = ["PO YN", "IPO YN", "LadderingYN", "TransactionalYN", "IT YN", "GAAP YN",
-             "RestatedFinancialsYN", "10B 5 YN", "SEC 11 YN", "SECActionYN"]
-    flag_filters = {}
-    for flag in flags:
-        if flag in df.columns:
-            flag_filters[flag] = st.selectbox(f"{flag}", ["All", "Yes", "No"])
+status = st.selectbox("📂 Case Status", ["All"] + sorted(df["CaseStatus"].dropna().unique()))
+sic = st.selectbox("🏷️ SIC Code", ["All"] + sorted(df["SICCode"].dropna().unique()))
+po = st.selectbox("📈 PO_YN", ["All"] + sorted(df["PO_YN"].dropna().unique()))
+ipo = st.selectbox("🚀 IPO_YN", ["All"] + sorted(df["IPO_YN"].dropna().unique()))
+laddering = st.selectbox("📉 LadderingYN", ["All"] + sorted(df["LadderingYN"].dropna().unique()))
+transactional = st.selectbox("📃 TransactionalYN", ["All"] + sorted(df["TransactionalYN"].dropna().unique()))
+it_yn = st.selectbox("💻 IT_YN", ["All"] + sorted(df["IT_YN"].dropna().unique()))
+gaap = st.selectbox("📚 GAAP_YN", ["All"] + sorted(df["GAAP_YN"].dropna().unique()))
+restated = st.selectbox("🧾 RestatedFinancialsYN", ["All"] + sorted(df["RestatedFinancialsYN"].dropna().unique()))
+sec10b = st.selectbox("📑 10B_5_YN", ["All"] + sorted(df["10B_5_YN"].dropna().unique()))
+sec11 = st.selectbox("📑 SEC_11_YN", ["All"] + sorted(df["SEC_11_YN"].dropna().unique()))
+secaction = st.selectbox("⚖️ SECActionYN", ["All"] + sorted(df["SECActionYN"].dropna().unique()))
 
-# Apply filters
+# --- Apply Filters ---
 filtered_df = df.copy()
 
-if case_id:
-    filtered_df = filtered_df[filtered_df["CaseID"].astype(str).str.contains(case_id, case=False, na=False)]
+if plaintiff_firm1:
+    filtered_df = filtered_df[filtered_df["Plaintiff Firms"].str.contains(plaintiff_firm1, case=False, na=False)]
+if plaintiff_firm2:
+    filtered_df = filtered_df[filtered_df["Plaintiff Firms"].str.contains(plaintiff_firm2, case=False, na=False)]
+if defendant_firm1:
+    filtered_df = filtered_df[filtered_df["Defendant Firms"].str.contains(defendant_firm1, case=False, na=False)]
+if defendant_firm2:
+    filtered_df = filtered_df[filtered_df["Defendant Firms"].str.contains(defendant_firm2, case=False, na=False)]
 
 if status != "All":
     filtered_df = filtered_df[filtered_df["CaseStatus"] == status]
+if sic != "All":
+    filtered_df = filtered_df[filtered_df["SICCode"] == sic]
+if po != "All":
+    filtered_df = filtered_df[filtered_df["PO_YN"] == po]
+if ipo != "All":
+    filtered_df = filtered_df[filtered_df["IPO_YN"] == ipo]
+if laddering != "All":
+    filtered_df = filtered_df[filtered_df["LadderingYN"] == laddering]
+if transactional != "All":
+    filtered_df = filtered_df[filtered_df["TransactionalYN"] == transactional]
+if it_yn != "All":
+    filtered_df = filtered_df[filtered_df["IT_YN"] == it_yn]
+if gaap != "All":
+    filtered_df = filtered_df[filtered_df["GAAP_YN"] == gaap]
+if restated != "All":
+    filtered_df = filtered_df[filtered_df["RestatedFinancialsYN"] == restated]
+if sec10b != "All":
+    filtered_df = filtered_df[filtered_df["10B_5_YN"] == sec10b]
+if sec11 != "All":
+    filtered_df = filtered_df[filtered_df["SEC_11_YN"] == sec11]
+if secaction != "All":
+    filtered_df = filtered_df[filtered_df["SECActionYN"] == secaction]
 
-if casename:
-    filtered_df = filtered_df[filtered_df["CaseName"].str.contains(casename, case=False, na=False)]
-
-if sic_code:
-    filtered_df = filtered_df[filtered_df["SICCode"].astype(str).str.contains(sic_code, na=False)]
-
-if class_start:
-    filtered_df = filtered_df[pd.to_datetime(filtered_df["ClassStartDate"], errors='coerce') >= pd.to_datetime(class_start)]
-
-if class_end:
-    filtered_df = filtered_df[pd.to_datetime(filtered_df["ClassEndDate"], errors='coerce') <= pd.to_datetime(class_end)]
-
-if filing_date:
-    filtered_df = filtered_df[pd.to_datetime(filtered_df["FederalFilingDate"], errors='coerce') >= pd.to_datetime(filing_date)]
-
-for flag, value in flag_filters.items():
-    if value != "All":
-        filtered_df = filtered_df[filtered_df[flag] == value]
-
-# Display final result
-st.write(f"### {len(filtered_df)} Matching Cases")
+# --- Display Table ---
+st.subheader("📁 Filtered Case Results")
 st.dataframe(filtered_df[[
     "CaseID", "CaseStatus", "CaseName", "SICCode", "ClassStartDate", "ClassEndDate",
-    "FederalFilingDate", "PO YN", "IPO YN", "LadderingYN", "TransactionalYN", "IT YN",
-    "GAAP YN", "RestatedFinancialsYN", "10B 5 YN", "SEC 11 YN", "SECActionYN",
-    "CaseLawFirmRole", "CashAmount", "TotalAmount"
+    "FederalFilingDate", "PO_YN", "IPO_YN", "LadderingYN", "TransactionalYN", "IT_YN",
+    "GAAP_YN", "RestatedFinancialsYN", "10B_5_YN", "SEC_11_YN", "SECActionYN",
+    "CaseLawFirm(Role)", "CashAmount", "TotalAmount"
 ]])
