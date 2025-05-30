@@ -21,10 +21,10 @@ with st.sidebar:
     ipo = st.selectbox("📉 IPO YN", ["All"] + sorted(df["IPO YN"].dropna().unique()))
     ladder = st.selectbox("📊 Laddering YN", ["All"] + sorted(df["LadderingYN"].dropna().unique()))
     transactional = st.selectbox("💼 Transactional YN", ["All"] + sorted(df["TransactionalYN"].dropna().unique()))
-    it = st.selectbox("💻 IT YN", ["All"] + sorted(df["IT_YN"].dropna().unique()))
-    gaap = st.selectbox("📚 GAAP YN", ["All"] + sorted(df["GAAP_YN"].dropna().unique()))
+    it = st.selectbox("💻 IT YN", ["All"] + sorted(df["IT YN"].dropna().unique()))
+    gaap = st.selectbox("📚 GAAP YN", ["All"] + sorted(df["GAAP YN"].dropna().unique()))
     restated = st.selectbox("📑 Restated Financials YN", ["All"] + sorted(df["RestatedFinancialsYN"].dropna().unique()))
-    sec11 = st.selectbox("📕 SEC 11 YN", ["All"] + sorted(df["SEC_11_YN"].dropna().unique()))
+    sec11 = st.selectbox("📕 SEC 11 YN", ["All"] + sorted(df["SEC 11 YN"].dropna().unique()))
     secaction = st.selectbox("⚖️ SEC Action YN", ["All"] + sorted(df["SECActionYN"].dropna().unique()))
     tenb5 = st.selectbox("🔐 10B 5 YN", ["All"] + sorted(df["10B 5 YN"].dropna().unique()))
 
