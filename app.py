@@ -9,14 +9,20 @@ def load_data():
 
 df = load_data()
 
+# Format date columns to remove time
+for col in ['ClassStartDate', 'ClassEndDate', 'FederalFilingDate']:
+    if col in df.columns:
+        df[col] = pd.to_datetime(df[col], errors='coerce').dt.date
+
 st.sidebar.title("🔍 Filter Cases")
 
 # Filters
 case_status = st.sidebar.selectbox("📂 Case Status", ["All"] + sorted(df["CaseStatus"].dropna().unique()))
-plaintiff_firm_1 = st.sidebar.text_input("👨‍⚖️ Plaintiff Firm 1")
-plaintiff_firm_2 = st.sidebar.text_input("👨‍⚖️ Plaintiff Firm 2")
-defendant_firm_1 = st.sidebar.text_input("🏛 Defendant Firm 1")
-defendant_firm_2 = st.sidebar.text_input("🏛 Defendant Firm 2")
+plaintiff_firm = st.sidebar.selectbox("👨‍⚖️ Plaintiff Firm", sorted(df["Plaintiff Firms"].dropna().unique()))
+defendant_firm = st.sidebar.selectbox("🏛 Defendant Firm", sorted(df["Defendant Firms"].dropna().unique()))
+min_case_count = st.sidebar.selectbox("🔢 Minimum Cases Between Firms", [1, 2, 3, 4, 5, 10])
+year_range = st.sidebar.slider("📅 Class Start Year Range", 2000, 2025, (2010, 2025))
+
 po = st.sidebar.selectbox("📈 PO YN", ["All"] + sorted(df["PO YN"].dropna().unique()))
 ipo = st.sidebar.selectbox("💹 IPO YN", ["All"] + sorted(df["IPO YN"].dropna().unique()))
 laddering = st.sidebar.selectbox("🪜 Laddering YN", ["All"] + sorted(df["LadderingYN"].dropna().unique()))
@@ -54,15 +60,16 @@ if sec_11 != "All":
 if sec_action != "All":
     filtered_df = filtered_df[filtered_df["SECActionYN"] == sec_action]
 
-# Plaintiff and Defendant firm filters (2 each)
-if plaintiff_firm_1:
-    filtered_df = filtered_df[filtered_df['Plaintiff Firms'].str.contains(plaintiff_firm_1, case=False, na=False)]
-if plaintiff_firm_2:
-    filtered_df = filtered_df[filtered_df['Plaintiff Firms'].str.contains(plaintiff_firm_2, case=False, na=False)]
-if defendant_firm_1:
-    filtered_df = filtered_df[filtered_df['Defendant Firms'].str.contains(defendant_firm_1, case=False, na=False)]
-if defendant_firm_2:
-    filtered_df = filtered_df[filtered_df['Defendant Firms'].str.contains(defendant_firm_2, case=False, na=False)]
+# Filter by Plaintiff and Defendant dropdowns
+filtered_df = filtered_df[(filtered_df['Plaintiff Firms'] == plaintiff_firm) & (filtered_df['Defendant Firms'] == defendant_firm)]
+
+# Filter by year range on ClassStartDate
+filtered_df = filtered_df[(filtered_df['ClassStartDate'].dt.year >= year_range[0]) & (filtered_df['ClassStartDate'].dt.year <= year_range[1])]
+
+# Filter by minimum number of cases between firm pairs
+firm_counts = df.groupby(['Plaintiff Firms', 'Defendant Firms']).size().reset_index(name='Count')
+filtered_df = filtered_df.merge(firm_counts, on=['Plaintiff Firms', 'Defendant Firms'])
+filtered_df = filtered_df[filtered_df['Count'] >= min_case_count]
 
 # Display
 st.title("📊 Law Firm Case Explorer")
@@ -77,4 +84,18 @@ columns_to_display = [
 
 available_columns = [col for col in columns_to_display if col in filtered_df.columns]
 
-st.dataframe(filtered_df[available_columns], use_container_width=True)
+# Format dollar columns
+for col in ["CashAmount", "TotalAmount"]:
+    if col in filtered_df.columns:
+        filtered_df[col] = pd.to_numeric(filtered_df[col], errors='coerce')
+
+st.dataframe(
+    filtered_df[available_columns].style
+        .format({"CashAmount": "$ {:,.2f}", "TotalAmount": "$ {:,.2f}"})
+        .set_properties(**{'text-align': 'center'})
+        .set_table_styles([dict(selector='th', props=[('text-align', 'center')])]),
+    use_container_width=True,
+    height=800
+)
+
+st.markdown(f"### Total Cases Displayed: {len(filtered_df)}")
