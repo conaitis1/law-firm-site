@@ -12,7 +12,7 @@ df = load_data()
 # Format date columns to remove time
 for col in ['ClassStartDate', 'ClassEndDate', 'FederalFilingDate']:
     if col in df.columns:
-        df[col] = pd.to_datetime(df[col], errors='coerce').dt.date
+        df[col] = pd.to_datetime(df[col], errors='coerce')
 
 st.sidebar.title("🔍 Filter Cases")
 
