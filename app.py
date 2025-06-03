@@ -92,12 +92,20 @@ for col in ["CashAmount", "TotalAmount"]:
     if col in filtered_df.columns:
         filtered_df[col] = pd.to_numeric(filtered_df[col], errors='coerce')
 
+styled_df = (
+    filtered_df[available_columns]
+    .style
+    .format({"CashAmount": "$ {:,.2f}", "TotalAmount": "$ {:,.2f}"})
+    .set_properties(**{'text-align': 'center'})
+    .set_table_styles([
+        {"selector": "th", "props": [("text-align", "center")]},
+        {"selector": "td", "props": [("text-align", "center")]}
+    ])
+)
+
 st.dataframe(
-    filtered_df[available_columns].style
-        .format({"CashAmount": "$ {:,.2f}", "TotalAmount": "$ {:,.2f}"})
-        .set_properties(**{'text-align': 'center'})
-        .set_table_styles([dict(selector='th', props=[('text-align', 'center')])]),
-    use_container_width=False,  # ← disable container width to allow scroll
+    styled_df,
+    use_container_width=False,
     height=800
 )
 
