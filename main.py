@@ -22,7 +22,7 @@ yn_columns = {
 
 for old, new in yn_columns.items():
     if old in df.columns:
-        df[new] = df[old].map({1: "Yes", 0: "No"})
+        df[new] = df[old].replace({1: "Yes", 0: "No", "1": "Yes", "0": "No"}).fillna(df[old])
 
 # Clean date columns and fix bad years
 date_cols = ['ClassStartDate', 'ClassEndDate', 'FederalFilingDate']
