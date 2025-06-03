@@ -44,23 +44,23 @@ if plaintiff_firm != "All":
 if defendant_firm != "All":
     filtered_df = filtered_df[filtered_df["Defendant Firms"] == defendant_firm]
 if po != "All":
-    filtered_df = filtered_df[filtered_df["PO YN"] == po]
+    filtered_df = filtered_df[filtered_df["PO_YN"] == po]
 if ipo != "All":
-    filtered_df = filtered_df[filtered_df["IPO YN"] == ipo]
+    filtered_df = filtered_df[filtered_df["IPO_YN"] == ipo]
 if laddering != "All":
     filtered_df = filtered_df[filtered_df["LadderingYN"] == laddering]
 if transactional != "All":
     filtered_df = filtered_df[filtered_df["TransactionalYN"] == transactional]
 if it != "All":
-    filtered_df = filtered_df[filtered_df["IT YN"] == it]
+    filtered_df = filtered_df[filtered_df["IT_YN"] == it]
 if gaap != "All":
-    filtered_df = filtered_df[filtered_df["GAAP YN"] == gaap]
+    filtered_df = filtered_df[filtered_df["GAAP_YN"] == gaap]
 if restated != "All":
     filtered_df = filtered_df[filtered_df["RestatedFinancialsYN"] == restated]
 if sec_10b5 != "All":
-    filtered_df = filtered_df[filtered_df["10B 5 YN"] == sec_10b5]
+    filtered_df = filtered_df[filtered_df["10B_5_YN"] == sec_10b5]
 if sec_11 != "All":
-    filtered_df = filtered_df[filtered_df["SEC 11 YN"] == sec_11]
+    filtered_df = filtered_df[filtered_df["SEC_11_YN"] == sec_11]
 if sec_action != "All":
     filtered_df = filtered_df[filtered_df["SECActionYN"] == sec_action]
 
@@ -76,17 +76,17 @@ firm_counts = df.groupby(['Plaintiff Firms', 'Defendant Firms']).size().reset_in
 filtered_df = filtered_df.merge(firm_counts, on=['Plaintiff Firms', 'Defendant Firms'])
 filtered_df = filtered_df[filtered_df['Count'] >= min_case_count]
 
+# Convert datetime to date (remove time)
+for col in filtered_df.columns:
+    if pd.api.types.is_datetime64_any_dtype(filtered_df[col]):
+        filtered_df[col] = filtered_df[col].dt.date
+
 # === Display Table ===
 st.title("📊 Law Firm Case Explorer")
 st.markdown("Filter and explore legal cases based on law firms, outcomes, and financials.")
 
-columns_to_display = [
-    "CaseID", "CaseStatus", "CaseName", "SICCode", "ClassStartDate", "ClassEndDate",
-    "FederalFilingDate", "PO YN", "IPO YN", "LadderingYN", "TransactionalYN",
-    "IT YN", "GAAP YN", "RestatedFinancialsYN", "10B 5 YN", "SEC 11 YN", "SECActionYN",
-    "CaseLawFirmRole", "CashAmount", "TotalAmount"
-]
-available_columns = [col for col in columns_to_display if col in filtered_df.columns]
+# Show all columns
+available_columns = filtered_df.columns.tolist()
 
 for col in ["CashAmount", "TotalAmount"]:
     if col in filtered_df.columns:
@@ -105,7 +105,7 @@ styled_df = (
 
 st.dataframe(
     styled_df,
-    use_container_width=False,
+    use_container_width=True,
     height=800
 )
 
