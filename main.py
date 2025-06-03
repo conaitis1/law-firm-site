@@ -3,6 +3,23 @@ import pandas as pd
 # Load original Excel
 df = pd.read_excel("copy LAW FIRM DATA-4.3.25 (1).xlsx", sheet_name="LAW FIRM DATA-4.3.25")
 
+yn_columns = [
+    "POYN", "IPOYN", "LadderingYN", "TransactionalYN",
+    "ITYN", "GAAPYN", "RestatedFinancialsYN", "10B5YN",
+    "SEC11YN", "SECActionYN"
+]
+
+rename_map = {
+    "POYN": "PO YN", "IPOYN": "IPO YN", "LadderingYN": "Laddering YN",
+    "TransactionalYN": "Transactional YN", "ITYN": "IT YN", "GAAPYN": "GAAP YN",
+    "RestatedFinancialsYN": "RestatedFinancialsYN", "10B5YN": "10B 5 YN",
+    "SEC11YN": "SEC 11 YN", "SECActionYN": "SECActionYN"
+}
+
+for col in yn_columns:
+    if col in df.columns:
+        df[rename_map[col]] = df[col].map({1: "Yes", 0: "No"})
+        
 # Flatten law firm names
 def extract_firms_by_role(cell_value, role_keyword):
     if pd.isna(cell_value):
