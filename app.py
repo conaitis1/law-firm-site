@@ -64,7 +64,10 @@ if sec_action != "All":
 filtered_df = filtered_df[(filtered_df['Plaintiff Firms'] == plaintiff_firm) & (filtered_df['Defendant Firms'] == defendant_firm)]
 
 # Filter by year range on ClassStartDate
-filtered_df = filtered_df[(filtered_df['ClassStartDate'].dt.year >= year_range[0]) & (filtered_df['ClassStartDate'].dt.year <= year_range[1])]
+filtered_df = filtered_df[
+    (filtered_df['ClassStartDate'].apply(lambda d: d.year if pd.notnull(d) else None) >= year_range[0]) &
+    (filtered_df['ClassStartDate'].apply(lambda d: d.year if pd.notnull(d) else None) <= year_range[1])
+]
 
 # Filter by minimum number of cases between firm pairs
 firm_counts = df.groupby(['Plaintiff Firms', 'Defendant Firms']).size().reset_index(name='Count')
