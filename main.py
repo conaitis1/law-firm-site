@@ -29,9 +29,9 @@ for col in date_cols:
     df[col] = df[col].mask(df[col].dt.year > 2025)
 
 # Keep only rows with at least one date >= 2010
-df = df[
-    df[date_cols].apply(lambda row: any(pd.notna(d) and d.year >= 2010 for d in row), axis=1)
-]
+# Keep rows where ClassStartDate is in or after 2010
+df = df[df['ClassStartDate'].notna() & (df['ClassStartDate'].dt.year >= 2010)]
+
 
 # Save output
 df.to_excel("modified_law_firm_data.xlsx", index=False)

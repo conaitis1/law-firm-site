@@ -7,6 +7,5 @@ __pycache__/
 *.bak
 *.tmp
 .streamlit/
-
 # Ignore VS Code settings
 .vscode/
