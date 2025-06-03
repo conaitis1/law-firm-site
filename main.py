@@ -9,8 +9,8 @@ def extract_firms_by_role(cell_value, role_keyword):
         return []
     return [entry.split('(')[0].strip() for entry in cell_value.split(';') if role_keyword in entry]
 
-# df["Plaintiff Firms"] = df["CaseLawFirm(Role)"].apply(lambda x: '; '.join(extract_firms_by_role(x, "Plaintiff law firm")))
-# df["Defendant Firms"] = df["CaseLawFirm(Role)"].apply(lambda x: '; '.join(extract_firms_by_role(x, "Defendant law firm")))
+df["Plaintiff Firms"] = df["CaseLawFirm(Role)"].apply(lambda x: '; '.join(extract_firms_by_role(x, "Plaintiff law firm")))
+df["Defendant Firms"] = df["CaseLawFirm(Role)"].apply(lambda x: '; '.join(extract_firms_by_role(x, "Defendant law firm")))
 
 # Clean column names
 # df.columns = df.columns.str.replace("_", " ").str.replace("(", "").str.replace(")", "").str.strip()
