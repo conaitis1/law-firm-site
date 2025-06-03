@@ -95,7 +95,7 @@ for col in ["CashAmount", "TotalAmount"]:
 styled_df = (
     filtered_df[available_columns]
     .style
-    .format({"CashAmount": "$ {:,.2f}", "TotalAmount": "$ {:,.2f}"})
+    .format({col: "$ {:,.2f}" for col in ["CashAmount", "TotalAmount"] if col in filtered_df.columns})
     .set_properties(**{'text-align': 'center'})
     .set_table_styles([
         {"selector": "th", "props": [("text-align", "center")]},
