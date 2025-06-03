@@ -97,7 +97,7 @@ st.dataframe(
         .format({"CashAmount": "$ {:,.2f}", "TotalAmount": "$ {:,.2f}"})
         .set_properties(**{'text-align': 'center'})
         .set_table_styles([dict(selector='th', props=[('text-align', 'center')])]),
-    use_container_width=True,
+    use_container_width=False,  # ← disable container width to allow scroll
     height=800
 )
 
