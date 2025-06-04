@@ -27,15 +27,15 @@ min_case_count_enabled = st.sidebar.checkbox("Enable Minimum Case Filter", value
 min_case_count = st.sidebar.slider("🔢 Minimum Cases Between Firms", 1, 66, 1)
 
 # Outcome filters
-po = st.sidebar.selectbox("📈 PO YN", ["All"] + sorted(df["PO_YN"].dropna().unique()))
-ipo = st.sidebar.selectbox("💹 IPO YN", ["All"] + sorted(df["IPO_YN"].dropna().unique()))
+po = st.sidebar.selectbox("📈 PO YN", ["All"] + sorted(df["PO YN"].dropna().unique()))
+ipo = st.sidebar.selectbox("💹 IPO YN", ["All"] + sorted(df["IPO YN"].dropna().unique()))
 laddering = st.sidebar.selectbox("🪜 Laddering YN", ["All"] + sorted(df["LadderingYN"].dropna().unique()))
 transactional = st.sidebar.selectbox("🔁 Transactional YN", ["All"] + sorted(df["TransactionalYN"].dropna().unique()))
-it = st.sidebar.selectbox("💻 IT YN", ["All"] + sorted(df["IT_YN"].dropna().unique()))
-gaap = st.sidebar.selectbox("📊 GAAP YN", ["All"] + sorted(df["GAAP_YN"].dropna().unique()))
+it = st.sidebar.selectbox("💻 IT YN", ["All"] + sorted(df["IT YN"].dropna().unique()))
+gaap = st.sidebar.selectbox("📊 GAAP YN", ["All"] + sorted(df["GAAP YN"].dropna().unique()))
 restated = st.sidebar.selectbox("🔄 Restated Financials YN", ["All"] + sorted(df["RestatedFinancialsYN"].dropna().unique()))
-sec_10b5 = st.sidebar.selectbox("📑 10B 5 YN", ["All"] + sorted(df["10B_5_YN"].dropna().unique()))
-sec_11 = st.sidebar.selectbox("📜 SEC 11 YN", ["All"] + sorted(df["SEC_11_YN"].dropna().unique()))
+sec_10b5 = st.sidebar.selectbox("📑 10B 5 YN", ["All"] + sorted(df["10B 5 YN"].dropna().unique()))
+sec_11 = st.sidebar.selectbox("📜 SEC 11 YN", ["All"] + sorted(df["SEC 11 YN"].dropna().unique()))
 sec_action = st.sidebar.selectbox("⚖️ SEC Action YN", ["All"] + sorted(df["SECActionYN"].dropna().unique()))
 
 # === Apply Filters ===
