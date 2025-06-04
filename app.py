@@ -76,22 +76,32 @@ firm_counts = df.groupby(['Plaintiff Firms', 'Defendant Firms']).size().reset_in
 filtered_df = filtered_df.merge(firm_counts, on=['Plaintiff Firms', 'Defendant Firms'])
 filtered_df = filtered_df[filtered_df['Count'] >= min_case_count]
 
-# Convert datetime to just date
-for col in filtered_df.columns:
-    if pd.api.types.is_datetime64_any_dtype(filtered_df[col]):
-        filtered_df[col] = filtered_df[col].dt.date
-
 # Drop unwanted columns
 columns_to_exclude = ["Plaintiff Firm", "DefenseFirm", "AJ", "AK"]
 filtered_df = filtered_df.drop(columns=[col for col in columns_to_exclude if col in filtered_df.columns])
 
-# Format money columns
+# Convert datetime to date (remove time)
+for col in filtered_df.columns:
+    if pd.api.types.is_datetime64_any_dtype(filtered_df[col]):
+        filtered_df[col] = filtered_df[col].dt.date
+
+# Convert numeric columns
 for col in ["CashAmount", "TotalAmount"]:
     if col in filtered_df.columns:
         filtered_df[col] = pd.to_numeric(filtered_df[col], errors='coerce')
 
-# Display
+# === Display Table ===
 st.title("📊 Law Firm Case Explorer")
 st.markdown("Filter and explore legal cases based on law firms, outcomes, and financials.")
-st.dataframe(filtered_df.style.set_properties(**{'text-align': 'center'}), use_container_width=True, height=800)
+
+# Apply string padding to simulate center alignment
+for col in filtered_df.select_dtypes(include='object').columns:
+    filtered_df[col] = filtered_df[col].apply(lambda x: f' {str(x)} ' if pd.notnull(x) else x)
+
+st.dataframe(
+    filtered_df,
+    use_container_width=True,
+    height=800
+)
+
 st.markdown(f"### Total Cases Displayed: {len(filtered_df)}")
