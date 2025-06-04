@@ -103,10 +103,11 @@ styled_df = (
     ])
 )
 
-st.dataframe(
-    styled_df,
+st.data_editor(
+    filtered_df[available_columns],
     use_container_width=True,
-    height=800
+    height=800,
+    column_config={col: st.column_config.Column(align="center") for col in filtered_df.columns}
 )
 
 st.markdown(f"### Total Cases Displayed: {len(filtered_df)}")
