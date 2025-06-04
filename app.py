@@ -90,16 +90,17 @@ long_columns = ["SettlingDefendants", "SettlementDesc", "PlaintiffLegalFeesDesc"
 for col in long_columns:
     if col in filtered_df.columns:
         gb.configure_column(
-            col,
-            cellStyle={
-                "textAlign": "left",
-                "overflow": "auto",
-                "whiteSpace": "normal",
-                "maxWidth": "300px"
-            },
-            wrapText=True,
-            autoHeight=True
-        )
+    col,
+    cellStyle={
+        "textAlign": "left",
+        "overflow": "auto",
+        "whiteSpace": "nowrap",       # prevents line wrapping
+        "maxWidth": "300px"
+    },
+    autoHeight=False,
+    wrapText=False
+)
+
 
 # Dollar formatting JS
 currency_format = JsCode("""
