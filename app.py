@@ -31,7 +31,7 @@ year_range = st.sidebar.slider("📅 Class Start Year Range", 2000, 2025, (2010,
 po = st.sidebar.selectbox("📈 PO YN", ["All"] + sorted(df["PO YN"].dropna().unique()))
 ipo = st.sidebar.selectbox("💹 IPO YN", ["All"] + sorted(df["IPO YN"].dropna().unique()))
 laddering = st.sidebar.selectbox("🪜 Laddering YN", ["All"] + sorted(df["Laddering YN"].dropna().unique()))
-transactional = st.sidebar.selectbox("🔁 Transactional YN", ["All"] + sorted(df["TransactionalYN"].dropna().unique()))
+transactional = st.sidebar.selectbox("🔁 Transactional YN", ["All"] + sorted(df["Transactional YN"].dropna().unique()))
 it = st.sidebar.selectbox("💻 IT YN", ["All"] + sorted(df["IT YN"].dropna().unique()))
 gaap = st.sidebar.selectbox("📊 GAAP YN", ["All"] + sorted(df["GAAP YN"].dropna().unique()))
 restated = st.sidebar.selectbox("🔄 Restated Financials YN", ["All"] + sorted(df["RestatedFinancialsYN"].dropna().unique()))
@@ -55,7 +55,7 @@ if ipo != "All":
 if laddering != "All":
     filtered_df = filtered_df[filtered_df["Laddering YN"] == laddering]
 if transactional != "All":
-    filtered_df = filtered_df[filtered_df["TransactionalYN"] == transactional]
+    filtered_df = filtered_df[filtered_df["Transactional YN"] == transactional]
 if it != "All":
     filtered_df = filtered_df[filtered_df["IT YN"] == it]
 if gaap != "All":
