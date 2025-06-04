@@ -96,17 +96,22 @@ for col in ["CashAmount", "TotalAmount"]:
 st.title("📊 Law Firm Case Explorer")
 st.markdown("Filter and explore legal cases based on law firms, outcomes, and financials.")
 
-# Show full table with centered cell style
-st.dataframe(
+# Display with full styling using st.write instead of st.dataframe
+styled_df = (
     filtered_df.style
+    .format({
+        "CashAmount": "$ {:,.2f}",
+        "TotalAmount": "$ {:,.2f}"
+    })
     .set_properties(**{"text-align": "center"})
     .set_table_styles([
         {"selector": "th", "props": [("text-align", "center")]},
         {"selector": "td", "props": [("text-align", "center")]}
-    ]),
-    use_container_width=True,
-    height=800
+    ])
 )
+
+st.write(styled_df)
+
 
 st.markdown(f"### Total Cases Displayed: {len(filtered_df)}")
 
