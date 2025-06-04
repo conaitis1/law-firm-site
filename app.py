@@ -10,10 +10,15 @@ def load_data():
 
 df = load_data()
 
-# Convert datetimes to dates
+# Clean and convert datetime columns
 for col in df.columns:
     if pd.api.types.is_datetime64_any_dtype(df[col]):
         df[col] = pd.to_datetime(df[col], errors='coerce').dt.date
+
+# Ensure monetary columns are numeric
+for col in ["CashAmount", "TotalAmount"]:
+    if col in df.columns:
+        df[col] = pd.to_numeric(df[col], errors='coerce')
 
 # === Sidebar Filters ===
 st.sidebar.title("🔍 Filter Cases")
@@ -73,15 +78,10 @@ if use_case_filter:
     filtered_df = filtered_df[filtered_df['Count'] >= min_case_count]
     filtered_df.drop(columns=['Count'], inplace=True, errors='ignore')
 
-# Ensure cash columns are numeric
-for col in ["CashAmount", "TotalAmount"]:
-    if col in filtered_df.columns:
-        filtered_df[col] = pd.to_numeric(filtered_df[col], errors='coerce')
-
 # === AgGrid Config ===
 gb = GridOptionsBuilder.from_dataframe(filtered_df)
 
-# Global default: compact, no wrap, no auto-height
+# Global defaults: compact, non-wrapping
 gb.configure_default_column(
     resizable=True,
     autoHeight=False,
@@ -94,22 +94,24 @@ gb.configure_default_column(
     }
 )
 
-# Dollar formatter
+# JS for dollar formatting
 currency_format = JsCode("""
 function(params) {
-    if (params.value === null || params.value === undefined || params.value === "") {
+    if (params.value === null || params.value === undefined || isNaN(params.value)) {
         return '';
     }
     return '$' + Number(params.value).toLocaleString(undefined, {
-        minimumFractionDigits: 2, maximumFractionDigits: 2
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
     });
 }
 """)
+
 for col in ["CashAmount", "TotalAmount"]:
     if col in filtered_df.columns:
         gb.configure_column(col, type=["numericColumn"], cellRenderer=currency_format)
 
-# Long text columns: enable scroll + fixed width
+# Scrollable long columns
 long_columns = ["SettlementDesc", "SettlingDefendants", "PlaintiffLegalFeesDesc", "Allegations", "CaseLawFirmRole"]
 for col in long_columns:
     if col in filtered_df.columns:
@@ -126,6 +128,7 @@ for col in long_columns:
         )
 
 grid_options = gb.build()
+grid_options["suppressSizeToFit"] = True  # <- critical to prevent global auto-stretch
 
 # === Display ===
 st.title("📊 Law Firm Case Explorer")
