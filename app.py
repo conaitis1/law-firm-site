@@ -10,12 +10,12 @@ def load_data():
 
 df = load_data()
 
-# Convert datetime columns to date (no time)
+# Convert datetime columns to just dates
 for col in df.columns:
     if pd.api.types.is_datetime64_any_dtype(df[col]):
         df[col] = pd.to_datetime(df[col], errors='coerce').dt.date
 
-# Sidebar filters
+# === Sidebar Filters ===
 st.sidebar.title("🔍 Filter Cases")
 
 def safe_unique(colname):
@@ -26,7 +26,7 @@ plaintiff_firm = st.sidebar.selectbox("👨‍⚖️ Plaintiff Firm", ["All"] + 
 defendant_firm = st.sidebar.selectbox("🏛 Defendant Firm", ["All"] + safe_unique("Defendant Firms"))
 year_range = st.sidebar.slider("📅 Class Start Year Range", 2000, 2025, (2010, 2025))
 
-# Feature filters
+# Column-specific filters
 filters = {
     "PO YN": "📈 PO YN",
     "IPO YN": "💹 IPO YN",
@@ -45,12 +45,12 @@ for col, label in filters.items():
     options = ["All"] + safe_unique(col)
     filter_values[col] = st.sidebar.selectbox(label, options)
 
-# Min cases toggle + slider
-use_min_case_filter = st.sidebar.checkbox("🔢 Enable Minimum Case Count Filter", value=True)
+# Minimum case filter
+use_case_filter = st.sidebar.checkbox("🔢 Enable Minimum Case Filter", value=True)
 max_case_count = df.groupby(['Plaintiff Firms', 'Defendant Firms']).size().max()
 min_case_count = st.sidebar.slider("Minimum Cases Between Firms", 1, int(max_case_count), 5)
 
-# Apply filters
+# === Apply Filters ===
 filtered_df = df.copy()
 
 if case_status != "All":
@@ -60,33 +60,32 @@ if plaintiff_firm != "All":
 if defendant_firm != "All":
     filtered_df = filtered_df[filtered_df["Defendant Firms"] == defendant_firm]
 for col, val in filter_values.items():
-    if val != "All":
+    if val != "All" and col in filtered_df.columns:
         filtered_df = filtered_df[filtered_df[col] == val]
 if "ClassStartDate" in filtered_df.columns:
     filtered_df = filtered_df[
-        filtered_df['ClassStartDate'].notna() &
-        (pd.to_datetime(filtered_df['ClassStartDate']).dt.year >= year_range[0]) &
-        (pd.to_datetime(filtered_df['ClassStartDate']).dt.year <= year_range[1])
+        filtered_df["ClassStartDate"].notna() &
+        (pd.to_datetime(filtered_df["ClassStartDate"]).dt.year >= year_range[0]) &
+        (pd.to_datetime(filtered_df["ClassStartDate"]).dt.year <= year_range[1])
     ]
 
-# Filter by case count between firm pairs
-if use_min_case_filter:
+# Apply minimum case count filter
+if use_case_filter:
     pair_counts = df.groupby(['Plaintiff Firms', 'Defendant Firms']).size().reset_index(name='Count')
     filtered_df = filtered_df.merge(pair_counts, on=['Plaintiff Firms', 'Defendant Firms'], how='left')
     filtered_df = filtered_df[filtered_df['Count'] >= min_case_count]
     filtered_df.drop(columns=['Count'], inplace=True, errors='ignore')
 
-# Convert monetary columns to numeric
+# Format monetary columns
 for col in ["CashAmount", "TotalAmount"]:
     if col in filtered_df.columns:
         filtered_df[col] = pd.to_numeric(filtered_df[col], errors='coerce')
 
-# === Display with AgGrid ===
-st.title("📊 Law Firm Case Explorer")
-
+# === AgGrid Configuration ===
 gb = GridOptionsBuilder.from_dataframe(filtered_df)
+gb.configure_default_column(resizable=True, autoHeight=True)
 
-# Format currency columns
+# Dollar formatting JS
 currency_format = JsCode("""
 function(params) {
     if (params.value === null || params.value === undefined || params.value === "") {
@@ -96,6 +95,7 @@ function(params) {
 }
 """)
 
+# Apply formatting to CashAmount and TotalAmount
 for col in ["CashAmount", "TotalAmount"]:
     if col in filtered_df.columns:
         gb.configure_column(col, type=["numericColumn"], cellRenderer=currency_format)
@@ -106,12 +106,14 @@ for col in filtered_df.columns:
 
 grid_options = gb.build()
 
+# === Display ===
+st.title("📊 Law Firm Case Explorer")
 AgGrid(
     filtered_df,
     gridOptions=grid_options,
     enable_enterprise_modules=False,
     use_checkbox=False,
-    fit_columns_on_grid_load=True,
+    fit_columns_on_grid_load=False,
     allow_unsafe_jscode=True,
     height=800
 )
