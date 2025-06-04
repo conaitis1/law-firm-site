@@ -48,23 +48,23 @@ if plaintiff_firm != "All":
 if defendant_firm != "All":
     filtered_df = filtered_df[filtered_df["Defendant Firms"] == defendant_firm]
 if po != "All":
-    filtered_df = filtered_df[filtered_df["PO_YN"] == po]
+    filtered_df = filtered_df[filtered_df["PO YN"] == po]
 if ipo != "All":
-    filtered_df = filtered_df[filtered_df["IPO_YN"] == ipo]
+    filtered_df = filtered_df[filtered_df["IPO YN"] == ipo]
 if laddering != "All":
     filtered_df = filtered_df[filtered_df["LadderingYN"] == laddering]
 if transactional != "All":
     filtered_df = filtered_df[filtered_df["TransactionalYN"] == transactional]
 if it != "All":
-    filtered_df = filtered_df[filtered_df["IT_YN"] == it]
+    filtered_df = filtered_df[filtered_df["IT YN"] == it]
 if gaap != "All":
-    filtered_df = filtered_df[filtered_df["GAAP_YN"] == gaap]
+    filtered_df = filtered_df[filtered_df["GAAP YN"] == gaap]
 if restated != "All":
     filtered_df = filtered_df[filtered_df["RestatedFinancialsYN"] == restated]
 if sec_10b5 != "All":
-    filtered_df = filtered_df[filtered_df["10B_5_YN"] == sec_10b5]
+    filtered_df = filtered_df[filtered_df["10B 5 YN"] == sec_10b5]
 if sec_11 != "All":
-    filtered_df = filtered_df[filtered_df["SEC_11_YN"] == sec_11]
+    filtered_df = filtered_df[filtered_df["SEC 11 YN"] == sec_11]
 if sec_action != "All":
     filtered_df = filtered_df[filtered_df["SECActionYN"] == sec_action]
 
