@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+from st_aggrid import AgGrid, GridOptionsBuilder, JsCode
 
 st.set_page_config(page_title="Law Firm Case Explorer", layout="wide")
 
@@ -9,97 +10,83 @@ def load_data():
 
 df = load_data()
 
-# Format date columns
-for col in ['ClassStartDate', 'ClassEndDate', 'FederalFilingDate']:
-    if col in df.columns:
-        df[col] = pd.to_datetime(df[col], errors='coerce')
+# Convert datetime columns to just dates
+for col in df.columns:
+    if pd.api.types.is_datetime64_any_dtype(df[col]):
+        df[col] = pd.to_datetime(df[col], errors='coerce').dt.date
 
+# Sidebar filters
 st.sidebar.title("🔍 Filter Cases")
 
-# === Filters ===
 case_status = st.sidebar.selectbox("📂 Case Status", ["All"] + sorted(df["CaseStatus"].dropna().unique()))
 plaintiff_firm = st.sidebar.selectbox("👨‍⚖️ Plaintiff Firm", ["All"] + sorted(df["Plaintiff Firms"].dropna().unique()))
 defendant_firm = st.sidebar.selectbox("🏛 Defendant Firm", ["All"] + sorted(df["Defendant Firms"].dropna().unique()))
+firm_pair_counts = df.groupby(['Plaintiff Firms', 'Defendant Firms']).size().reset_index(name='Count')
+max_case_count = firm_pair_counts['Count'].max()
+use_case_count_filter = st.sidebar.checkbox("🔢 Use Minimum Case Filter", value=False)
+min_case_count = st.sidebar.slider("Minimum Cases Between Firms", 1, int(max_case_count), 1)
 year_range = st.sidebar.slider("📅 Class Start Year Range", 2000, 2025, (2010, 2025))
 
-# Min Case Filter
-min_case_count_enabled = st.sidebar.checkbox("Enable Minimum Case Filter", value=True)
-min_case_count = st.sidebar.slider("🔢 Minimum Cases Between Firms", 1, 66, 1)
+# Other filters
+filters = {
+    "PO_YN": "📈 PO YN",
+    "IPO_YN": "💹 IPO YN",
+    "LadderingYN": "🪜 Laddering YN",
+    "TransactionalYN": "🔁 Transactional YN",
+    "IT_YN": "💻 IT YN",
+    "GAAP_YN": "📊 GAAP YN",
+    "RestatedFinancialsYN": "🔄 Restated Financials YN",
+    "10B_5_YN": "📑 10B 5 YN",
+    "SEC_11_YN": "📜 SEC 11 YN",
+    "SECActionYN": "⚖️ SEC Action YN"
+}
 
-# Outcome filters
-po = st.sidebar.selectbox("📈 PO YN", ["All"] + sorted(df["PO YN"].dropna().unique()))
-ipo = st.sidebar.selectbox("💹 IPO YN", ["All"] + sorted(df["IPO YN"].dropna().unique()))
-laddering = st.sidebar.selectbox("🪜 Laddering YN", ["All"] + sorted(df["Laddering YN"].dropna().unique()))
-transactional = st.sidebar.selectbox("🔁 Transactional YN", ["All"] + sorted(df["Transactional YN"].dropna().unique()))
-it = st.sidebar.selectbox("💻 IT YN", ["All"] + sorted(df["IT YN"].dropna().unique()))
-gaap = st.sidebar.selectbox("📊 GAAP YN", ["All"] + sorted(df["GAAP YN"].dropna().unique()))
-restated = st.sidebar.selectbox("🔄 Restated Financials YN", ["All"] + sorted(df["RestatedFinancialsYN"].dropna().unique()))
-sec_10b5 = st.sidebar.selectbox("📑 10B 5 YN", ["All"] + sorted(df["10B 5 YN"].dropna().unique()))
-sec_11 = st.sidebar.selectbox("📜 SEC 11 YN", ["All"] + sorted(df["SEC 11 YN"].dropna().unique()))
-sec_action = st.sidebar.selectbox("⚖️ SEC Action YN", ["All"] + sorted(df["SECActionYN"].dropna().unique()))
+for col, label in filters.items():
+    options = ["All"] + sorted(df[col].dropna().unique())
+    selected = st.sidebar.selectbox(label, options)
+    if selected != "All":
+        df = df[df[col] == selected]
 
-# === Apply Filters ===
-filtered_df = df.copy()
-
+# Apply other filters
 if case_status != "All":
-    filtered_df = filtered_df[filtered_df["CaseStatus"] == case_status]
+    df = df[df["CaseStatus"] == case_status]
 if plaintiff_firm != "All":
-    filtered_df = filtered_df[filtered_df["Plaintiff Firms"] == plaintiff_firm]
+    df = df[df["Plaintiff Firms"] == plaintiff_firm]
 if defendant_firm != "All":
-    filtered_df = filtered_df[filtered_df["Defendant Firms"] == defendant_firm]
-if po != "All":
-    filtered_df = filtered_df[filtered_df["PO YN"] == po]
-if ipo != "All":
-    filtered_df = filtered_df[filtered_df["IPO YN"] == ipo]
-if laddering != "All":
-    filtered_df = filtered_df[filtered_df["Laddering YN"] == laddering]
-if transactional != "All":
-    filtered_df = filtered_df[filtered_df["Transactional YN"] == transactional]
-if it != "All":
-    filtered_df = filtered_df[filtered_df["IT YN"] == it]
-if gaap != "All":
-    filtered_df = filtered_df[filtered_df["GAAP YN"] == gaap]
-if restated != "All":
-    filtered_df = filtered_df[filtered_df["RestatedFinancialsYN"] == restated]
-if sec_10b5 != "All":
-    filtered_df = filtered_df[filtered_df["10B 5 YN"] == sec_10b5]
-if sec_11 != "All":
-    filtered_df = filtered_df[filtered_df["SEC 11 YN"] == sec_11]
-if sec_action != "All":
-    filtered_df = filtered_df[filtered_df["SECActionYN"] == sec_action]
-
-# Year range filter
-filtered_df = filtered_df[
-    filtered_df['ClassStartDate'].notna() &
-    (filtered_df['ClassStartDate'].dt.year >= year_range[0]) &
-    (filtered_df['ClassStartDate'].dt.year <= year_range[1])
+    df = df[df["Defendant Firms"] == defendant_firm]
+df = df[
+    df["ClassStartDate"].notna() &
+    (pd.to_datetime(df["ClassStartDate"]).dt.year >= year_range[0]) &
+    (pd.to_datetime(df["ClassStartDate"]).dt.year <= year_range[1])
 ]
+if use_case_count_filter:
+    df = df.merge(firm_pair_counts, on=['Plaintiff Firms', 'Defendant Firms'])
+    df = df[df['Count'] >= min_case_count]
 
-# Optional: Minimum Case Filter
-if min_case_count_enabled:
-    firm_counts = df.groupby(['Plaintiff Firms', 'Defendant Firms']).size().reset_index(name='Count')
-    filtered_df = filtered_df.merge(firm_counts, on=['Plaintiff Firms', 'Defendant Firms'])
-    filtered_df = filtered_df[filtered_df['Count'] >= min_case_count]
-
-# Remove time from date columns
-for col in filtered_df.columns:
-    if pd.api.types.is_datetime64_any_dtype(filtered_df[col]):
-        filtered_df[col] = filtered_df[col].dt.date
-
-# Convert and format currency columns with dollar signs
+# Format cash columns
 for col in ["CashAmount", "TotalAmount"]:
-    if col in filtered_df.columns:
-        filtered_df[col] = pd.to_numeric(filtered_df[col], errors='coerce')
-        filtered_df[col] = filtered_df[col].apply(lambda x: f"$ {x:,.2f}" if pd.notnull(x) else "")
+    if col in df.columns:
+        df[col] = pd.to_numeric(df[col], errors="coerce")
 
-# Display DataFrame
+# Ag-Grid display with formatting
+gb = GridOptionsBuilder.from_dataframe(df)
+currency_formatter = JsCode('''function(params) {
+    if (params.value === undefined || params.value === null || params.value === "") {
+        return "";
+    }
+    return "$" + Number(params.value).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+}''')
+
+for col in df.columns:
+    gb.configure_column(col, cellStyle={'textAlign': 'center'})
+for money_col in ["CashAmount", "TotalAmount"]:
+    if money_col in df.columns:
+        gb.configure_column(money_col, type=["numericColumn", "customNumericFormat"], valueFormatter=currency_formatter)
+
+gridOptions = gb.build()
+
 st.title("📊 Law Firm Case Explorer")
 st.markdown("Filter and explore legal cases based on law firms, outcomes, and financials.")
+AgGrid(df, gridOptions=gridOptions, height=800, fit_columns_on_grid_load=True)
 
-st.dataframe(
-    filtered_df,
-    use_container_width=True,
-    height=800
-)
-
-st.markdown(f"### Total Cases Displayed: {len(filtered_df)}")
+st.markdown(f"### Total Cases Displayed: {len(df)}")
