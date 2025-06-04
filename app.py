@@ -53,7 +53,7 @@ if po != "All":
 if ipo != "All":
     filtered_df = filtered_df[filtered_df["IPO YN"] == ipo]
 if laddering != "All":
-    filtered_df = filtered_df[filtered_df["LadderingYN"] == laddering]
+    filtered_df = filtered_df[filtered_df["Laddering YN"] == laddering]
 if transactional != "All":
     filtered_df = filtered_df[filtered_df["TransactionalYN"] == transactional]
 if it != "All":
