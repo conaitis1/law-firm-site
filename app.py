@@ -33,10 +33,10 @@ laddering = st.sidebar.selectbox("🪜 Laddering YN", ["All"] + sorted(df["Ladde
 transactional = st.sidebar.selectbox("🔁 Transactional YN", ["All"] + sorted(df["Transactional YN"].dropna().unique()))
 it = st.sidebar.selectbox("💻 IT YN", ["All"] + sorted(df["IT YN"].dropna().unique()))
 gaap = st.sidebar.selectbox("📊 GAAP YN", ["All"] + sorted(df["GAAP YN"].dropna().unique()))
-restated = st.sidebar.selectbox("🔄 Restated Financials YN", ["All"] + sorted(df["Restated FinancialsYN"].dropna().unique()))
+restated = st.sidebar.selectbox("🔄 Restated Financials YN", ["All"] + sorted(df["RestatedFinancialsYN"].dropna().unique()))
 sec_10b5 = st.sidebar.selectbox("📑 10B 5 YN", ["All"] + sorted(df["10B 5 YN"].dropna().unique()))
 sec_11 = st.sidebar.selectbox("📜 SEC 11 YN", ["All"] + sorted(df["SEC 11 YN"].dropna().unique()))
-sec_action = st.sidebar.selectbox("⚖️ SEC Action YN", ["All"] + sorted(df["SECAction YN"].dropna().unique()))
+sec_action = st.sidebar.selectbox("⚖️ SEC Action YN", ["All"] + sorted(df["SECActionYN"].dropna().unique()))
 
 # === Apply Filters ===
 filtered_df = df.copy()
