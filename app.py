@@ -85,6 +85,22 @@ for col in ["CashAmount", "TotalAmount"]:
 gb = GridOptionsBuilder.from_dataframe(filtered_df)
 gb.configure_default_column(resizable=True, autoHeight=True)
 
+long_columns = ["SettlingDefendants", "SettlementDesc", "PlaintiffLegalFeesDesc", "Allegations"]
+
+for col in long_columns:
+    if col in filtered_df.columns:
+        gb.configure_column(
+            col,
+            cellStyle={
+                "textAlign": "left",
+                "overflow": "auto",
+                "whiteSpace": "normal",
+                "maxWidth": "300px"
+            },
+            wrapText=True,
+            autoHeight=True
+        )
+
 # Dollar formatting JS
 currency_format = JsCode("""
 function(params) {
