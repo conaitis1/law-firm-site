@@ -93,7 +93,7 @@ st.markdown("Filter and explore legal cases based on law firms, outcomes, and fi
 # Show all available columns
 available_columns = filtered_df.columns.tolist()
 
-# Convert and format currency columns with dollar signs
+# Convert and format currency columns with dollar signs — fixed
 for col in ["CashAmount", "TotalAmount"]:
     if col in filtered_df.columns:
         filtered_df[col] = pd.to_numeric(filtered_df[col], errors='coerce')
