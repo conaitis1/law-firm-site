@@ -86,7 +86,9 @@ st.title("📊 Law Firm Case Explorer")
 st.markdown("Filter and explore legal cases based on law firms, outcomes, and financials.")
 
 # Show all columns
-available_columns = filtered_df.columns.tolist()
+columns_to_exclude = ["Plaintiff Firm", "DefenseFirm", "AJ", "AK"]
+available_columns = [col for col in filtered_df.columns if col not in columns_to_exclude]
+
 
 for col in ["CashAmount", "TotalAmount"]:
     if col in filtered_df.columns:
