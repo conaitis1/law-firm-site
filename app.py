@@ -10,7 +10,7 @@ def load_data():
 
 df = load_data()
 
-# Convert datetime columns to just dates
+# Convert datetimes to dates
 for col in df.columns:
     if pd.api.types.is_datetime64_any_dtype(df[col]):
         df[col] = pd.to_datetime(df[col], errors='coerce').dt.date
@@ -26,7 +26,6 @@ plaintiff_firm = st.sidebar.selectbox("👨‍⚖️ Plaintiff Firm", ["All"] + 
 defendant_firm = st.sidebar.selectbox("🏛 Defendant Firm", ["All"] + safe_unique("Defendant Firms"))
 year_range = st.sidebar.slider("📅 Class Start Year Range", 2000, 2025, (2010, 2025))
 
-# Column-specific filters
 filters = {
     "PO YN": "📈 PO YN",
     "IPO YN": "💹 IPO YN",
@@ -45,12 +44,11 @@ for col, label in filters.items():
     options = ["All"] + safe_unique(col)
     filter_values[col] = st.sidebar.selectbox(label, options)
 
-# Minimum case filter
 use_case_filter = st.sidebar.checkbox("🔢 Enable Minimum Case Filter", value=True)
 max_case_count = df.groupby(['Plaintiff Firms', 'Defendant Firms']).size().max()
 min_case_count = st.sidebar.slider("Minimum Cases Between Firms", 1, int(max_case_count), 5)
 
-# === Apply Filters ===
+# === Filtering Logic ===
 filtered_df = df.copy()
 
 if case_status != "All":
@@ -69,24 +67,50 @@ if "ClassStartDate" in filtered_df.columns:
         (pd.to_datetime(filtered_df["ClassStartDate"]).dt.year <= year_range[1])
     ]
 
-# Apply minimum case count filter
 if use_case_filter:
     pair_counts = df.groupby(['Plaintiff Firms', 'Defendant Firms']).size().reset_index(name='Count')
     filtered_df = filtered_df.merge(pair_counts, on=['Plaintiff Firms', 'Defendant Firms'], how='left')
     filtered_df = filtered_df[filtered_df['Count'] >= min_case_count]
     filtered_df.drop(columns=['Count'], inplace=True, errors='ignore')
 
-# Format monetary columns
+# Ensure cash columns are numeric
 for col in ["CashAmount", "TotalAmount"]:
     if col in filtered_df.columns:
         filtered_df[col] = pd.to_numeric(filtered_df[col], errors='coerce')
 
-# === AgGrid Configuration ===
+# === AgGrid Config ===
 gb = GridOptionsBuilder.from_dataframe(filtered_df)
-gb.configure_default_column(resizable=True, autoHeight=True)
 
-long_columns = ["SettlingDefendants", "SettlementDesc", "PlaintiffLegalFeesDesc", "Allegations"]
+# Global default: compact, no wrap, no auto-height
+gb.configure_default_column(
+    resizable=True,
+    autoHeight=False,
+    wrapText=False,
+    cellStyle={
+        "whiteSpace": "nowrap",
+        "overflow": "hidden",
+        "textOverflow": "ellipsis",
+        "textAlign": "center"
+    }
+)
 
+# Dollar formatter
+currency_format = JsCode("""
+function(params) {
+    if (params.value === null || params.value === undefined || params.value === "") {
+        return '';
+    }
+    return '$' + Number(params.value).toLocaleString(undefined, {
+        minimumFractionDigits: 2, maximumFractionDigits: 2
+    });
+}
+""")
+for col in ["CashAmount", "TotalAmount"]:
+    if col in filtered_df.columns:
+        gb.configure_column(col, type=["numericColumn"], cellRenderer=currency_format)
+
+# Long text columns: enable scroll + fixed width
+long_columns = ["SettlementDesc", "SettlingDefendants", "PlaintiffLegalFeesDesc", "Allegations", "CaseLawFirmRole"]
 for col in long_columns:
     if col in filtered_df.columns:
         gb.configure_column(
@@ -94,32 +118,12 @@ for col in long_columns:
             cellStyle={
                 "textAlign": "left",
                 "overflow": "auto",
-                "whiteSpace": "nowrap",       # prevents line wrapping
+                "whiteSpace": "nowrap",
                 "maxWidth": "300px"
             },
             autoHeight=False,
             wrapText=False
-        )       
-
-
-# Dollar formatting JS
-currency_format = JsCode("""
-function(params) {
-    if (params.value === null || params.value === undefined || params.value === "") {
-        return '';
-    }
-    return '$' + Number(params.value).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-}
-""")
-
-# Apply formatting to CashAmount and TotalAmount
-for col in ["CashAmount", "TotalAmount"]:
-    if col in filtered_df.columns:
-        gb.configure_column(col, type=["numericColumn"], cellRenderer=currency_format)
-
-# Center all columns
-for col in filtered_df.columns:
-    gb.configure_column(col, cellStyle={"textAlign": "center"})
+        )
 
 grid_options = gb.build()
 
