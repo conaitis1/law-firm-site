@@ -105,6 +105,10 @@ styled_df = (
     ])
 )
 
+# Pad object (string) columns to simulate centering
+for col in filtered_df.select_dtypes(include=['object']).columns:
+    filtered_df[col] = filtered_df[col].apply(lambda x: f'   {x}   ' if pd.notnull(x) else x)
+
 st.dataframe(
     styled_df,
     use_container_width=True,
