@@ -109,7 +109,8 @@ function(params) {
 
 for col in ["CashAmount", "TotalAmount"]:
     if col in filtered_df.columns:
-        gb.configure_column(col, valueFormatter=currency_format)
+        gb.configure_column(col, type=["numericColumn"], cellRenderer=currency_format)
+
 
 # Scrollable long columns
 long_columns = ["SettlementDesc", "SettlingDefendants", "PlaintiffLegalFeesDesc", "Allegations", "CaseLawFirmRole"]
@@ -141,12 +142,6 @@ for col in date_columns:
             lambda x: x.strftime("%Y-%m-%d") if pd.notnull(x) else ""
         )
 
-for col in ["CashAmount", "TotalAmount", "NonCashAmount"]:
-    if col in filtered_df.columns:
-        filtered_df[col] = pd.to_numeric(filtered_df[col], errors='coerce')  # ← ensures numeric
-        filtered_df[col] = filtered_df[col].apply(
-            lambda x: f"${x:,.2f}" if pd.notnull(x) else ""
-        )
 
 
 AgGrid(
