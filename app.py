@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 from st_aggrid import AgGrid, GridOptionsBuilder, JsCode
-from st_aggrid.shared import JsCode
 
 st.set_page_config(page_title="Law Firm Case Explorer", layout="wide")
 
@@ -11,7 +10,7 @@ def load_data():
 
 df = load_data()
 
-# Convert datetime columns to string date format
+# Clean and convert datetime columns
 for col in df.columns:
     if pd.api.types.is_datetime64_any_dtype(df[col]):
         df[col] = pd.to_datetime(df[col], errors='coerce').dt.strftime('%Y-%m-%d')
@@ -69,9 +68,7 @@ for col, val in filter_values.items():
 
 if "ClassStartDate" in filtered_df.columns:
     class_start = pd.to_datetime(filtered_df["ClassStartDate"], errors="coerce")
-    filtered_df = filtered_df[
-        class_start.dt.year.between(year_range[0], year_range[1])
-    ]
+    filtered_df = filtered_df[class_start.dt.year.between(year_range[0], year_range[1])]
 
 if use_case_filter:
     pair_counts = df.groupby(['Plaintiff Firms', 'Defendant Firms']).size().reset_index(name='Count')
@@ -82,7 +79,7 @@ if use_case_filter:
 # === AgGrid Config ===
 gb = GridOptionsBuilder.from_dataframe(filtered_df)
 
-# Default styling for all columns
+# Global styles
 gb.configure_default_column(
     resizable=True,
     autoHeight=False,
@@ -95,13 +92,13 @@ gb.configure_default_column(
     }
 )
 
-# Dollar formatting for monetary columns
-currency_renderer = JsCode("""
+# 💲 Proper dollar format (finally works)
+currency_formatter = JsCode("""
 function(params) {
-    if (params.value == null || isNaN(params.value)) {
+    if (params.value === undefined || params.value === null || isNaN(params.value)) {
         return '';
     }
-    return '$' + Number(params.value).toLocaleString(undefined, {
+    return '$' + params.value.toLocaleString(undefined, {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
     });
@@ -110,9 +107,9 @@ function(params) {
 
 for col in ["CashAmount", "TotalAmount", "NonCashAmount"]:
     if col in filtered_df.columns:
-        gb.configure_column(col, type=["numericColumn"], cellRenderer=currency_renderer)
+        gb.configure_column(col, type=["numericColumn"], valueFormatter=currency_formatter)
 
-# Horizontal scroll for long text columns
+# Scrollable long columns
 long_columns = ["SettlementDesc", "SettlingDefendants", "PlaintiffLegalFeesDesc", "Allegations", "CaseLawFirmRole"]
 for col in long_columns:
     if col in filtered_df.columns:
