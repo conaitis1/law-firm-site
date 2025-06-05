@@ -94,12 +94,12 @@ gb.configure_default_column(
     }
 )
 
-currency_renderer = JsCode("""
+currency_formatter = JsCode("""
 function(params) {
-    if (params.value == null || isNaN(params.value)) {
+    if (params.value === null || params.value === undefined || isNaN(params.value)) {
         return '';
     }
-    return '$' + Number(params.value).toLocaleString(undefined, {
+    return '$' + parseFloat(params.value).toLocaleString(undefined, {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
     });
@@ -108,7 +108,11 @@ function(params) {
 
 for col in ["CashAmount", "TotalAmount", "NonCashAmount"]:
     if col in filtered_df.columns:
-        gb.configure_column(col, type=["numericColumn"], valueFormatter=currency_renderer)
+        gb.configure_column(
+            col,
+            type=["rightAligned", "numericColumn"],
+            valueFormatter=currency_formatter
+        )
 
 
 
