@@ -132,11 +132,15 @@ grid_options["suppressSizeToFit"] = True  # <- critical to prevent global auto-s
 
 # === Display ===
 st.title("📊 Law Firm Case Explorer")
-# Format date columns to remove time from filtered_df
-# Force all datetime columns to string format (YYYY-MM-DD)
-for col in filtered_df.columns:
-    if pd.api.types.is_datetime64_any_dtype(filtered_df[col]):
-        filtered_df[col] = filtered_df[col].astype(str).str.slice(0, 10)
+# Convert datetime columns to formatted strings so AgGrid doesn't parse them as dates
+date_columns = ["ClassStartDate", "ClassEndDate", "FederalFilingDate", "FinalSettlementDate", "TentativeSettlementDate", "ObjectionDeadline", "ClaimDeadline"]
+
+for col in date_columns:
+    if col in filtered_df.columns:
+        filtered_df[col] = pd.to_datetime(filtered_df[col], errors="coerce").apply(
+            lambda x: x.strftime("%Y-%m-%d") if pd.notnull(x) else ""
+        )
+
 AgGrid(
     filtered_df,
     gridOptions=grid_options,
