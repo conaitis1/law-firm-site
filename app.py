@@ -133,7 +133,7 @@ grid_options["suppressSizeToFit"] = True  # <- critical to prevent global auto-s
 # === Display ===
 st.title("📊 Law Firm Case Explorer")
 # Convert datetime columns to formatted strings so AgGrid doesn't parse them as dates
-date_columns = ["ClassStartDate", "ClassEndDate", "FederalFilingDate", "FinalSettlementDate", "TentativeSettlementDate", "ObjectionDeadline", "ClaimDeadline"]
+date_columns = ["ClassStartDate", "ClassEndDate", "FederalFilingDate", "FinalSettlementDate", "TentativeSettlementDate", "ObjectionDeadline", "ClaimDeadline", "LeadPlaintiffDeadline", "Updated_On_Date"]
 
 for col in date_columns:
     if col in filtered_df.columns:
