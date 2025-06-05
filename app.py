@@ -93,22 +93,14 @@ gb.configure_default_column(
     }
 )
 
-# JS Dollar formatter
-currency_renderer = JsCode("""
-function(params) {
-    if (params.value == null || isNaN(params.value)) {
-        return '';
-    }
-    return '$' + Number(params.value).toLocaleString(undefined, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    });
-}
-""")
-
 for col in ["CashAmount", "TotalAmount", "NonCashAmount"]:
     if col in filtered_df.columns:
-        gb.configure_column(col, type=["numericColumn"], cellRenderer=currency_renderer)
+        gb.configure_column(
+            col,
+            type=["numericColumn"],
+            valueFormatter="(params) => params.value != null ? '$' + params.value.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) : ''"
+        )
+
 
 # Horizontal scroll for long columns
 long_columns = ["SettlementDesc", "SettlingDefendants", "PlaintiffLegalFeesDesc", "Allegations", "CaseLawFirmRole"]
