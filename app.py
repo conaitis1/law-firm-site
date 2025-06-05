@@ -81,25 +81,19 @@ if use_case_filter:
 # === AgGrid Config ===
 gb = GridOptionsBuilder.from_dataframe(filtered_df)
 
-gb.configure_default_column(
-    resizable=True,
-    autoHeight=False,
-    wrapText=False,
-    cellStyle={
-        "whiteSpace": "nowrap",
-        "overflow": "hidden",
-        "textOverflow": "ellipsis",
-        "textAlign": "center"
-    }
-)
+from st_aggrid.shared import JsCode
+
+currency_formatter = JsCode("""
+(params) => params.value != null ? '$' + params.value.toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+}) : ''
+""")
 
 for col in ["CashAmount", "TotalAmount", "NonCashAmount"]:
     if col in filtered_df.columns:
-        gb.configure_column(
-            col,
-            type=["numericColumn"],
-            valueFormatter="(params) => params.value != null ? '$' + params.value.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) : ''"
-        )
+        gb.configure_column(col, type=["numericColumn"], valueFormatter=currency_formatter)
+
 
 
 # Horizontal scroll for long columns
