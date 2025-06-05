@@ -135,12 +135,11 @@ st.title("📊 Law Firm Case Explorer")
 # Convert datetime columns to formatted strings so AgGrid doesn't parse them as dates
 date_columns = ["ClassStartDate", "ClassEndDate", "FederalFilingDate", "FinalSettlementDate", "TentativeSettlementDate", "ObjectionDeadline", "ClaimDeadline", "LeadPlaintiffDeadline", "Updated_On_Date"]
 
-for col in ["CashAmount", "TotalAmount", "NonCashAmount"]:
+for col in date_columns:
     if col in filtered_df.columns:
-        filtered_df[col] = filtered_df[col].apply(
-            lambda x: f"${x:,.2f}" if pd.notnull(x) else ""
+        filtered_df[col] = pd.to_datetime(filtered_df[col], errors="coerce").apply(
+            lambda x: x.strftime("%Y-%m-%d") if pd.notnull(x) else ""
         )
-
 
 AgGrid(
     filtered_df,
