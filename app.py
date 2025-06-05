@@ -143,6 +143,7 @@ for col in date_columns:
 
 for col in ["CashAmount", "TotalAmount", "NonCashAmount"]:
     if col in filtered_df.columns:
+        filtered_df[col] = pd.to_numeric(filtered_df[col], errors='coerce')  # ← ensures numeric
         filtered_df[col] = filtered_df[col].apply(
             lambda x: f"${x:,.2f}" if pd.notnull(x) else ""
         )
