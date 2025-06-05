@@ -10,13 +10,19 @@ def load_data():
 
 df = load_data()
 
-# Clean and convert datetime columns
-for col in df.columns:
-    if pd.api.types.is_datetime64_any_dtype(df[col]):
+# Convert datetime columns to 'YYYY-MM-DD' strings
+date_columns = [
+    "ClassStartDate", "ClassEndDate", "FederalFilingDate", "FinalSettlementDate",
+    "TentativeSettlementDate", "ObjectionDeadline", "ClaimDeadline",
+    "LeadPlaintiffDeadline", "Updated_On_Date"
+]
+for col in date_columns:
+    if col in df.columns:
         df[col] = pd.to_datetime(df[col], errors='coerce').dt.strftime('%Y-%m-%d')
 
-# Ensure monetary columns are numeric
-for col in ["CashAmount", "TotalAmount", "NonCashAmount"]:
+# Ensure monetary columns are numeric (needed for formatting to work)
+monetary_columns = ["CashAmount", "TotalAmount", "NonCashAmount"]
+for col in monetary_columns:
     if col in df.columns:
         df[col] = pd.to_numeric(df[col], errors='coerce')
 
@@ -79,7 +85,7 @@ if use_case_filter:
 # === AgGrid Config ===
 gb = GridOptionsBuilder.from_dataframe(filtered_df)
 
-# Global styles
+# Global defaults
 gb.configure_default_column(
     resizable=True,
     autoHeight=False,
@@ -92,24 +98,22 @@ gb.configure_default_column(
     }
 )
 
-# 💲 Proper dollar format (finally works)
+# ✅ Dollar formatting via valueFormatter
 currency_formatter = JsCode("""
-function(params) {
-    if (params.value === undefined || params.value === null || isNaN(params.value)) {
-        return '';
-    }
-    return '$' + params.value.toLocaleString(undefined, {
+(params) => {
+    if (params.value == null || isNaN(params.value)) return '';
+    return '$' + Number(params.value).toLocaleString(undefined, {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
     });
 }
 """)
 
-for col in ["CashAmount", "TotalAmount", "NonCashAmount"]:
+for col in monetary_columns:
     if col in filtered_df.columns:
         gb.configure_column(col, type=["numericColumn"], valueFormatter=currency_formatter)
 
-# Scrollable long columns
+# Horizontally scrollable long-text columns
 long_columns = ["SettlementDesc", "SettlingDefendants", "PlaintiffLegalFeesDesc", "Allegations", "CaseLawFirmRole"]
 for col in long_columns:
     if col in filtered_df.columns:
@@ -126,11 +130,10 @@ for col in long_columns:
         )
 
 grid_options = gb.build()
-grid_options["suppressSizeToFit"] = True
+grid_options["suppressSizeToFit"] = True  # Prevents all columns from stretching out
 
 # === Display ===
 st.title("📊 Law Firm Case Explorer")
-
 AgGrid(
     filtered_df,
     gridOptions=grid_options,
