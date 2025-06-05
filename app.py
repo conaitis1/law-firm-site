@@ -10,13 +10,13 @@ def load_data():
 
 df = load_data()
 
-# Clean and convert datetime columns
+# Convert datetime columns to just date
 for col in df.columns:
     if pd.api.types.is_datetime64_any_dtype(df[col]):
-        df[col] = pd.to_datetime(df[col], errors='coerce').dt.date
+        df[col] = pd.to_datetime(df[col], errors='coerce').dt.strftime('%Y-%m-%d')
 
 # Ensure monetary columns are numeric
-for col in ["CashAmount", "TotalAmount"]:
+for col in ["CashAmount", "TotalAmount", "NonCashAmount"]:
     if col in df.columns:
         df[col] = pd.to_numeric(df[col], errors='coerce')
 
@@ -65,11 +65,11 @@ if defendant_firm != "All":
 for col, val in filter_values.items():
     if val != "All" and col in filtered_df.columns:
         filtered_df = filtered_df[filtered_df[col] == val]
+
 if "ClassStartDate" in filtered_df.columns:
+    class_start = pd.to_datetime(filtered_df["ClassStartDate"], errors="coerce")
     filtered_df = filtered_df[
-        filtered_df["ClassStartDate"].notna() &
-        (pd.to_datetime(filtered_df["ClassStartDate"]).dt.year >= year_range[0]) &
-        (pd.to_datetime(filtered_df["ClassStartDate"]).dt.year <= year_range[1])
+        class_start.dt.year.between(year_range[0], year_range[1])
     ]
 
 if use_case_filter:
@@ -81,7 +81,6 @@ if use_case_filter:
 # === AgGrid Config ===
 gb = GridOptionsBuilder.from_dataframe(filtered_df)
 
-# Global defaults: compact, non-wrapping
 gb.configure_default_column(
     resizable=True,
     autoHeight=False,
@@ -94,12 +93,13 @@ gb.configure_default_column(
     }
 )
 
-currency_formatter = JsCode("""
+# JS Dollar formatter
+currency_renderer = JsCode("""
 function(params) {
-    if (params.value === null || params.value === undefined || isNaN(params.value)) {
+    if (params.value == null || isNaN(params.value)) {
         return '';
     }
-    return '$' + parseFloat(params.value).toLocaleString(undefined, {
+    return '$' + Number(params.value).toLocaleString(undefined, {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
     });
@@ -108,11 +108,41 @@ function(params) {
 
 for col in ["CashAmount", "TotalAmount", "NonCashAmount"]:
     if col in filtered_df.columns:
+        gb.configure_column(col, type=["numericColumn"], cellRenderer=currency_renderer)
+
+# Horizontal scroll for long columns
+long_columns = ["SettlementDesc", "SettlingDefendants", "PlaintiffLegalFeesDesc", "Allegations", "CaseLawFirmRole"]
+for col in long_columns:
+    if col in filtered_df.columns:
         gb.configure_column(
             col,
-            type=["rightAligned", "numericColumn"],
-            valueFormatter=currency_formatter
+            cellStyle={
+                "textAlign": "left",
+                "overflow": "auto",
+                "whiteSpace": "nowrap",
+                "maxWidth": "300px"
+            },
+            autoHeight=False,
+            wrapText=False
         )
+
+grid_options = gb.build()
+grid_options["suppressSizeToFit"] = True
+
+# === Display ===
+st.title("📊 Law Firm Case Explorer")
+
+AgGrid(
+    filtered_df,
+    gridOptions=grid_options,
+    enable_enterprise_modules=False,
+    use_checkbox=False,
+    fit_columns_on_grid_load=False,
+    allow_unsafe_jscode=True,
+    height=800
+)
+
+st.markdown(f"### Total Cases Displayed: {len(filtered_df)}")
 
 
 
