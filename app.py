@@ -10,11 +10,10 @@ def load_data():
 
 df = load_data()
 
-# Remove time from all datetime columns in filtered_df
-for col in filtered_df.columns:
-    if pd.api.types.is_datetime64_any_dtype(filtered_df[col]):
-        filtered_df[col] = pd.to_datetime(filtered_df[col], errors='coerce').dt.strftime('%Y-%m-%d')
-
+# Clean and convert datetime columns
+for col in df.columns:
+    if pd.api.types.is_datetime64_any_dtype(df[col]):
+        df[col] = pd.to_datetime(df[col], errors='coerce').dt.date
 
 # Ensure monetary columns are numeric
 for col in ["CashAmount", "TotalAmount"]:
@@ -133,6 +132,11 @@ grid_options["suppressSizeToFit"] = True  # <- critical to prevent global auto-s
 
 # === Display ===
 st.title("📊 Law Firm Case Explorer")
+# Format date columns to remove time from filtered_df
+for col in filtered_df.columns:
+    if pd.api.types.is_datetime64_any_dtype(filtered_df[col]):
+        filtered_df[col] = pd.to_datetime(filtered_df[col], errors='coerce').dt.strftime('%Y-%m-%d')
+
 AgGrid(
     filtered_df,
     gridOptions=grid_options,
