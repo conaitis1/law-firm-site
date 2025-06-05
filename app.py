@@ -133,10 +133,10 @@ grid_options["suppressSizeToFit"] = True  # <- critical to prevent global auto-s
 # === Display ===
 st.title("📊 Law Firm Case Explorer")
 # Format date columns to remove time from filtered_df
+# Force all datetime columns to string format (YYYY-MM-DD)
 for col in filtered_df.columns:
     if pd.api.types.is_datetime64_any_dtype(filtered_df[col]):
-        filtered_df[col] = pd.to_datetime(filtered_df[col], errors='coerce').dt.strftime('%Y-%m-%d')
-
+        filtered_df[col] = filtered_df[col].astype(str).str.slice(0, 10)
 AgGrid(
     filtered_df,
     gridOptions=grid_options,
