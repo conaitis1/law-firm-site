@@ -109,7 +109,7 @@ function(params) {
 
 for col in ["CashAmount", "TotalAmount"]:
     if col in filtered_df.columns:
-        gb.configure_column(col, type=["numericColumn"], cellRenderer=currency_format)
+        gb.configure_column(col, valueFormatter=currency_format)
 
 # Scrollable long columns
 long_columns = ["SettlementDesc", "SettlingDefendants", "PlaintiffLegalFeesDesc", "Allegations", "CaseLawFirmRole"]
