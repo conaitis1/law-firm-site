@@ -94,10 +94,9 @@ gb.configure_default_column(
     }
 )
 
-# JS for dollar formatting
-currency_format = JsCode("""
+currency_renderer = JsCode("""
 function(params) {
-    if (params.value === null || params.value === undefined || isNaN(params.value)) {
+    if (params.value == null || isNaN(params.value)) {
         return '';
     }
     return '$' + Number(params.value).toLocaleString(undefined, {
@@ -107,9 +106,11 @@ function(params) {
 }
 """)
 
-for col in ["CashAmount", "TotalAmount"]:
+for col in ["CashAmount", "TotalAmount", "NonCashAmount"]:
     if col in filtered_df.columns:
-        gb.configure_column(col, type=["numericColumn"], cellRenderer=currency_format)
+        gb.configure_column(col, type=["numericColumn"], valueFormatter=currency_renderer)
+
+
 
 
 # Scrollable long columns
@@ -141,8 +142,6 @@ for col in date_columns:
         filtered_df[col] = pd.to_datetime(filtered_df[col], errors="coerce").apply(
             lambda x: x.strftime("%Y-%m-%d") if pd.notnull(x) else ""
         )
-
-
 
 AgGrid(
     filtered_df,
