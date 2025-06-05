@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 from st_aggrid import AgGrid, GridOptionsBuilder, JsCode
+from st_aggrid.shared import JsCode
 
 st.set_page_config(page_title="Law Firm Case Explorer", layout="wide")
 
@@ -10,7 +11,7 @@ def load_data():
 
 df = load_data()
 
-# Convert datetime columns to just date
+# Convert datetime columns to string date format
 for col in df.columns:
     if pd.api.types.is_datetime64_any_dtype(df[col]):
         df[col] = pd.to_datetime(df[col], errors='coerce').dt.strftime('%Y-%m-%d')
@@ -81,22 +82,37 @@ if use_case_filter:
 # === AgGrid Config ===
 gb = GridOptionsBuilder.from_dataframe(filtered_df)
 
-from st_aggrid.shared import JsCode
+# Default styling for all columns
+gb.configure_default_column(
+    resizable=True,
+    autoHeight=False,
+    wrapText=False,
+    cellStyle={
+        "whiteSpace": "nowrap",
+        "overflow": "hidden",
+        "textOverflow": "ellipsis",
+        "textAlign": "center"
+    }
+)
 
-currency_formatter = JsCode("""
-(params) => params.value != null ? '$' + params.value.toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-}) : ''
+# Dollar formatting for monetary columns
+currency_renderer = JsCode("""
+function(params) {
+    if (params.value == null || isNaN(params.value)) {
+        return '';
+    }
+    return '$' + Number(params.value).toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+}
 """)
 
 for col in ["CashAmount", "TotalAmount", "NonCashAmount"]:
     if col in filtered_df.columns:
-        gb.configure_column(col, type=["numericColumn"], valueFormatter=currency_formatter)
+        gb.configure_column(col, type=["numericColumn"], cellRenderer=currency_renderer)
 
-
-
-# Horizontal scroll for long columns
+# Horizontal scroll for long text columns
 long_columns = ["SettlementDesc", "SettlingDefendants", "PlaintiffLegalFeesDesc", "Allegations", "CaseLawFirmRole"]
 for col in long_columns:
     if col in filtered_df.columns:
@@ -117,51 +133,6 @@ grid_options["suppressSizeToFit"] = True
 
 # === Display ===
 st.title("📊 Law Firm Case Explorer")
-
-AgGrid(
-    filtered_df,
-    gridOptions=grid_options,
-    enable_enterprise_modules=False,
-    use_checkbox=False,
-    fit_columns_on_grid_load=False,
-    allow_unsafe_jscode=True,
-    height=800
-)
-
-st.markdown(f"### Total Cases Displayed: {len(filtered_df)}")
-
-
-
-
-# Scrollable long columns
-long_columns = ["SettlementDesc", "SettlingDefendants", "PlaintiffLegalFeesDesc", "Allegations", "CaseLawFirmRole"]
-for col in long_columns:
-    if col in filtered_df.columns:
-        gb.configure_column(
-            col,
-            cellStyle={
-                "textAlign": "left",
-                "overflow": "auto",
-                "whiteSpace": "nowrap",
-                "maxWidth": "300px"
-            },
-            autoHeight=False,
-            wrapText=False
-        )
-
-grid_options = gb.build()
-grid_options["suppressSizeToFit"] = True  # <- critical to prevent global auto-stretch
-
-# === Display ===
-st.title("📊 Law Firm Case Explorer")
-# Convert datetime columns to formatted strings so AgGrid doesn't parse them as dates
-date_columns = ["ClassStartDate", "ClassEndDate", "FederalFilingDate", "FinalSettlementDate", "TentativeSettlementDate", "ObjectionDeadline", "ClaimDeadline", "LeadPlaintiffDeadline", "Updated_On_Date"]
-
-for col in date_columns:
-    if col in filtered_df.columns:
-        filtered_df[col] = pd.to_datetime(filtered_df[col], errors="coerce").apply(
-            lambda x: x.strftime("%Y-%m-%d") if pd.notnull(x) else ""
-        )
 
 AgGrid(
     filtered_df,
