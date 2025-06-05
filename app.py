@@ -10,7 +10,7 @@ def load_data():
 
 df = load_data()
 
-# Clean and convert datetime columns
+# Format datetime columns to string (date only)
 for col in df.columns:
     if pd.api.types.is_datetime64_any_dtype(df[col]):
         df[col] = pd.to_datetime(df[col], errors='coerce').dt.strftime('%Y-%m-%d')
@@ -79,26 +79,10 @@ if use_case_filter:
 # === AgGrid Config ===
 gb = GridOptionsBuilder.from_dataframe(filtered_df)
 
-# Global styles
-gb.configure_default_column(
-    resizable=True,
-    autoHeight=False,
-    wrapText=False,
-    cellStyle={
-        "whiteSpace": "nowrap",
-        "overflow": "hidden",
-        "textOverflow": "ellipsis",
-        "textAlign": "center"
-    }
-)
-
-# 💲 Proper dollar format (finally works)
 currency_formatter = JsCode("""
-function(params) {
-    if (params.value === undefined || params.value === null || isNaN(params.value)) {
-        return '';
-    }
-    return '$' + params.value.toLocaleString(undefined, {
+(params) => {
+    if (params.value == null || isNaN(params.value)) return '';
+    return '$' + Number(params.value).toLocaleString(undefined, {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
     });
@@ -109,7 +93,7 @@ for col in ["CashAmount", "TotalAmount", "NonCashAmount"]:
     if col in filtered_df.columns:
         gb.configure_column(col, type=["numericColumn"], valueFormatter=currency_formatter)
 
-# Scrollable long columns
+# Horizontal scroll for long columns
 long_columns = ["SettlementDesc", "SettlingDefendants", "PlaintiffLegalFeesDesc", "Allegations", "CaseLawFirmRole"]
 for col in long_columns:
     if col in filtered_df.columns:
@@ -124,6 +108,18 @@ for col in long_columns:
             autoHeight=False,
             wrapText=False
         )
+
+gb.configure_default_column(
+    resizable=True,
+    autoHeight=False,
+    wrapText=False,
+    cellStyle={
+        "whiteSpace": "nowrap",
+        "overflow": "hidden",
+        "textOverflow": "ellipsis",
+        "textAlign": "center"
+    }
+)
 
 grid_options = gb.build()
 grid_options["suppressSizeToFit"] = True
