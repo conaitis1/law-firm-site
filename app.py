@@ -107,6 +107,7 @@ gb.configure_default_column(
 )
 
 
+
 # ✅ Dollar formatting via valueFormatter
 currency_formatter = JsCode("""
 (params) => {
@@ -147,11 +148,12 @@ st.markdown("""
     <style>
     .ag-header-cell-label {
         display: flex;
-        justify-content: center;
+        justify-content: center !important;
+        align-items: center !important;
+        text-align: center !important;
     }
     </style>
 """, unsafe_allow_html=True)
-
 
 AgGrid(
     filtered_df,
