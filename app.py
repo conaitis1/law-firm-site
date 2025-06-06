@@ -121,7 +121,13 @@ currency_formatter = JsCode("""
 
 for col in monetary_columns:
     if col in filtered_df.columns:
-        gb.configure_column(col, type=["numericColumn"], valueFormatter=currency_formatter)
+        gb.configure_column(
+            col,
+            type=["numericColumn"],
+            valueFormatter=currency_formatter,
+            headerClass="centered-header"
+        )
+
 
 # Horizontally scrollable long-text columns
 long_columns = ["SettlementDesc", "SettlingDefendants", "PlaintiffLegalFeesDesc", "Allegations", "CaseLawFirmRole"]
@@ -147,13 +153,14 @@ st.title("📊 Law Firm Case Explorer")
 st.markdown("""
     <style>
     .ag-header-cell-label {
-        display: flex;
         justify-content: center !important;
-        align-items: center !important;
-        text-align: center !important;
+    }
+    .centered-header .ag-header-cell-label {
+        justify-content: center !important;
     }
     </style>
 """, unsafe_allow_html=True)
+
 
 AgGrid(
     filtered_df,
