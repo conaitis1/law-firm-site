@@ -94,12 +94,10 @@ if use_case_filter:
 # === AgGrid Config ===
 gb = GridOptionsBuilder.from_dataframe(filtered_df)
 
-# Global defaults
 gb.configure_default_column(
     resizable=True,
     autoHeight=False,
     wrapText=False,
-    headerClass="center-header"
     cellStyle={
         "whiteSpace": "nowrap",
         "overflow": "hidden",
@@ -107,6 +105,7 @@ gb.configure_default_column(
         "textAlign": "center"
     }
 )
+
 
 # ✅ Dollar formatting via valueFormatter
 currency_formatter = JsCode("""
@@ -147,13 +146,12 @@ st.title("📊 Law Firm Case Explorer")
 st.markdown("""
     <style>
     .ag-header-cell-label {
-        justify-content: center;
-    }
-    .center-header .ag-header-cell-label {
+        display: flex;
         justify-content: center;
     }
     </style>
 """, unsafe_allow_html=True)
+
 
 AgGrid(
     filtered_df,
