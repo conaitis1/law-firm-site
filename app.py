@@ -33,9 +33,18 @@ def safe_unique(colname):
     return sorted(df[colname].dropna().unique()) if colname in df.columns else []
 
 case_status = st.sidebar.selectbox("📂 Case Status", ["All"] + safe_unique("CaseStatus"))
-plaintiff_firm = st.sidebar.selectbox("👨‍⚖️ Plaintiff Firm", ["All"] + safe_unique("Plaintiff Firms"))
-defendant_firm = st.sidebar.selectbox("🏛 Defendant Firm", ["All"] + safe_unique("Defendant Firms"))
 year_range = st.sidebar.slider("📅 Class Start Year Range", 2000, 2025, (2010, 2025))
+
+def extract_individual_firms(column):
+    all_firms = df[column].dropna().astype(str).str.split(";")
+    flat_firms = sorted(set(firm.strip() for sublist in all_firms for firm in sublist if firm.strip()))
+    return flat_firms
+
+plaintiff_firm_options = ["All"] + extract_individual_firms("Plaintiff Firms")
+defendant_firm_options = ["All"] + extract_individual_firms("Defendant Firms")
+
+plaintiff_firm = st.sidebar.selectbox("👨‍⚖️ Plaintiff Firm", plaintiff_firm_options)
+defendant_firm = st.sidebar.selectbox("🏛 Defendant Firm", defendant_firm_options)
 
 filters = {
     "PO YN": "📈 PO YN",
@@ -65,9 +74,9 @@ filtered_df = df.copy()
 if case_status != "All":
     filtered_df = filtered_df[filtered_df["CaseStatus"] == case_status]
 if plaintiff_firm != "All":
-    filtered_df = filtered_df[filtered_df["Plaintiff Firms"] == plaintiff_firm]
+    filtered_df = filtered_df[filtered_df["Plaintiff Firms"].astype(str).str.contains(plaintiff_firm)]
 if defendant_firm != "All":
-    filtered_df = filtered_df[filtered_df["Defendant Firms"] == defendant_firm]
+    filtered_df = filtered_df[filtered_df["Defendant Firms"].astype(str).str.contains(defendant_firm)]
 for col, val in filter_values.items():
     if val != "All" and col in filtered_df.columns:
         filtered_df = filtered_df[filtered_df[col] == val]
