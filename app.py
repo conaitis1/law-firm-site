@@ -99,6 +99,7 @@ gb.configure_default_column(
     resizable=True,
     autoHeight=False,
     wrapText=False,
+    headerClass="center-header"
     cellStyle={
         "whiteSpace": "nowrap",
         "overflow": "hidden",
@@ -143,6 +144,17 @@ grid_options["suppressSizeToFit"] = True  # Prevents all columns from stretching
 
 # === Display ===
 st.title("📊 Law Firm Case Explorer")
+st.markdown("""
+    <style>
+    .ag-header-cell-label {
+        justify-content: center;
+    }
+    .center-header .ag-header-cell-label {
+        justify-content: center;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
 AgGrid(
     filtered_df,
     gridOptions=grid_options,
