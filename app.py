@@ -43,8 +43,8 @@ def extract_individual_firms(column):
 plaintiff_firm_options = ["All"] + extract_individual_firms("Plaintiff Firms")
 defendant_firm_options = ["All"] + extract_individual_firms("Defendant Firms")
 
-plaintiff_firm = st.sidebar.selectbox("👨‍⚖️ Plaintiff Firm", plaintiff_firm_options)
-defendant_firm = st.sidebar.selectbox("🏛 Defendant Firm", defendant_firm_options)
+plaintiff_firm = st.sidebar.selectbox("Plaintiff Firm", plaintiff_firm_options)
+defendant_firm = st.sidebar.selectbox("Defendant Firm", defendant_firm_options)
 
 filters = {
     "PO YN": "PO YN",
@@ -64,7 +64,7 @@ for col, label in filters.items():
     options = ["All"] + safe_unique(col)
     filter_values[col] = st.sidebar.selectbox(label, options)
 
-use_case_filter = st.sidebar.checkbox("🔢 Enable Minimum Case Filter", value=True)
+use_case_filter = st.sidebar.checkbox("Enable Minimum Case Filter", value=True)
 max_case_count = df.groupby(['Plaintiff Firms', 'Defendant Firms']).size().max()
 min_case_count = st.sidebar.slider("Minimum Cases Between Firms", 1, int(max_case_count), 5)
 
@@ -164,7 +164,7 @@ grid_options = gb.build()
 grid_options["suppressSizeToFit"] = True  # Prevents all columns from stretching out
 
 # === Display ===
-st.title("📊 Law Firm Case Explorer")
+st.title("Law Firm Case Explorer")
 st.markdown("""
     <style>
     .ag-header-cell-label {
