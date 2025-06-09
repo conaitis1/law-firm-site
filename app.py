@@ -91,6 +91,14 @@ if use_case_filter:
     filtered_df = filtered_df[filtered_df['Count'] >= min_case_count]
     filtered_df.drop(columns=['Count'], inplace=True, errors='ignore')
 
+# === Exact Date Filter ===
+exact_class_end_date = st.sidebar.date_input("📅 Filter by Exact Class End Date (optional)", value=None)
+
+if exact_class_end_date:
+    filtered_df = filtered_df[
+        pd.to_datetime(filtered_df["ClassEndDate"], errors='coerce') == pd.to_datetime(exact_class_end_date)
+    ]
+
 # === AgGrid Config ===
 gb = GridOptionsBuilder.from_dataframe(filtered_df)
 
