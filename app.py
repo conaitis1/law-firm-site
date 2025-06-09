@@ -14,7 +14,7 @@ df = load_data()
 date_columns = [
     "ClassStartDate", "ClassEndDate", "FederalFilingDate", "FinalSettlementDate",
     "TentativeSettlementDate", "ObjectionDeadline", "ClaimDeadline",
-    "LeadPlaintiffDeadline", "Updated_On_Date"
+    "LeadPlaintiffDeadline", "Updated_On_Date", "DismissalDate"
 ]
 for col in date_columns:
     if col in df.columns:
