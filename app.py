@@ -108,11 +108,12 @@ if exact_class_end_date:
 
 # === AgGrid Config ===
 gb = GridOptionsBuilder.from_dataframe(filtered_df)
-
+# Define a custom CSS class for centered headers
 gb.configure_default_column(
     resizable=True,
     autoHeight=False,
     wrapText=False,
+    headerClass="center-header",  # <-- This line is key
     cellStyle={
         "whiteSpace": "nowrap",
         "overflow": "hidden",
