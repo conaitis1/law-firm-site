@@ -47,16 +47,16 @@ plaintiff_firm = st.sidebar.selectbox("👨‍⚖️ Plaintiff Firm", plaintiff_
 defendant_firm = st.sidebar.selectbox("🏛 Defendant Firm", defendant_firm_options)
 
 filters = {
-    "PO YN": "📈 PO YN",
-    "IPO YN": "💹 IPO YN",
-    "LadderingYN": "🪜 Laddering YN",
-    "TransactionalYN": "🔁 Transactional YN",
-    "IT YN": "💻 IT YN",
-    "GAAP YN": "📊 GAAP YN",
-    "RestatedFinancialsYN": "🔄 Restated Financials YN",
-    "10B 5 YN": "📑 10B 5 YN",
-    "SEC 11 YN": "📜 SEC 11 YN",
-    "SECActionYN": "⚖️ SEC Action YN"
+    "PO YN": "PO YN",
+    "IPO YN": "IPO YN",
+    "LadderingYN": "Laddering YN",
+    "TransactionalYN": "Transactional YN",
+    "IT YN": "IT YN",
+    "GAAP YN": "GAAP YN",
+    "RestatedFinancialsYN": "Restated Financials YN",
+    "10B 5 YN": "10B 5 YN",
+    "SEC 11 YN": "SEC 11 YN",
+    "SECActionYN": "SEC Action YN"
 }
 
 filter_values = {}
@@ -95,7 +95,7 @@ if use_case_filter:
 from datetime import date
 
 exact_class_end_date = st.sidebar.date_input(
-    "📅 Filter by Exact Class End Date (optional)",
+    "Filter by Exact Class End Date (optional)",
     value=None,
     min_value=date(2000, 1, 1),
     max_value=date(2030, 12, 31)
