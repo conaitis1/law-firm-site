@@ -186,6 +186,11 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
+custom_css = {
+    ".left-align-header .ag-header-cell-label": {
+        "justify-content": "flex-start"
+    }
+}
 
 AgGrid(
     filtered_df,
@@ -194,7 +199,9 @@ AgGrid(
     use_checkbox=False,
     fit_columns_on_grid_load=False,
     allow_unsafe_jscode=True,
-    height=800
+    height=800,
+    custom_css=custom_css  # ← ADD THIS
 )
+
 
 st.markdown(f"### Total Cases Displayed: {len(filtered_df)}")
