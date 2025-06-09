@@ -92,7 +92,14 @@ if use_case_filter:
     filtered_df.drop(columns=['Count'], inplace=True, errors='ignore')
 
 # === Exact Date Filter ===
-exact_class_end_date = st.sidebar.date_input("📅 Filter by Exact Class End Date (optional)", value=None)
+from datetime import date
+
+exact_class_end_date = st.sidebar.date_input(
+    "📅 Filter by Exact Class End Date (optional)",
+    value=None,
+    min_value=date(2000, 1, 1),
+    max_value=date(2030, 12, 31)
+)
 
 if exact_class_end_date:
     filtered_df = filtered_df[
