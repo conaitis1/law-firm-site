@@ -161,6 +161,15 @@ for col in long_columns:
             wrapText=False
         )
 
+if "CaseName" in filtered_df.columns:
+    gb.configure_column(
+        "CaseName",
+        cellStyle={
+            "textAlign": "left"
+        }
+    )
+
+
 grid_options = gb.build()
 grid_options["suppressSizeToFit"] = True  # Prevents all columns from stretching out
 
