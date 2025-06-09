@@ -32,8 +32,8 @@ st.sidebar.title("🔍 Filter Cases")
 def safe_unique(colname):
     return sorted(df[colname].dropna().unique()) if colname in df.columns else []
 
-case_status = st.sidebar.selectbox("📂 Case Status", ["All"] + safe_unique("CaseStatus"))
-year_range = st.sidebar.slider("📅 Class Start Year Range", 2000, 2025, (2010, 2025))
+case_status = st.sidebar.selectbox("Case Status", ["All"] + safe_unique("CaseStatus"))
+year_range = st.sidebar.slider("Class Start Year Range", 2000, 2025, (2010, 2025))
 
 def extract_individual_firms(column):
     all_firms = df[column].dropna().astype(str).str.split(";")
