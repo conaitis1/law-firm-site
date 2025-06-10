@@ -126,14 +126,9 @@ gb.configure_default_column(
 
 # ✅ Dollar formatting via valueFormatter
 currency_formatter = JsCode("""
-(params) => {
-    if (params.value == null || isNaN(params.value)) return '';
-    return '$' + Number(params.value).toLocaleString(undefined, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    });
-}
+(params) => params.value != null ? '$' + Math.round(params.value).toLocaleString() : ''
 """)
+
 
 for col in monetary_columns:
     if col in filtered_df.columns:
