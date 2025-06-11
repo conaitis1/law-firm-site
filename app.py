@@ -223,16 +223,18 @@ if plaintiff_firm != "All" and defendant_firm != "All":
         row = row.iloc[0]
         sizes = [row["Settled"], row["Dismissed"], row["Other"]]
         labels = ["Settled", "Dismissed", "Other"]
-        fig, ax = plt.subplots(figsize=(.8, .8))  # smaller chart
+        fig, ax = plt.subplots()  # default size (6.4 x 4.8), sharp image
         ax.pie(
             sizes,
             labels=labels,
             autopct="%1.1f%%",
             startangle=90,
-            textprops={"fontsize": 2}  # 👈 smaller font for both labels and percentages
+            textprops={"fontsize": 10},
+            radius=0.7  # 👈 shrinks the pie inside the figure area
         )
         ax.axis("equal")
         st.pyplot(fig)
+
 
     else:
         st.info("No pie chart available: this exact firm matchup was not found in the outcome dataset.")
