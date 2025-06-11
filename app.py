@@ -223,7 +223,7 @@ if plaintiff_firm != "All" and defendant_firm != "All":
         row = row.iloc[0]
         sizes = [row["Settled"], row["Dismissed"], row["Other"]]
         labels = ["Settled", "Dismissed", "Other"]
-        fig, ax = plt.subplots(figsize=(6, 6))  # smaller chart, default is (6.4, 4.8)
+        fig, ax = plt.subplots(figsize=(1, 1))  # smaller chart, default is (6.4, 4.8)
         ax.pie(sizes, labels=labels, autopct="%1.1f%%", startangle=90)
         ax.axis("equal")
         st.pyplot(fig)
