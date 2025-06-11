@@ -230,7 +230,7 @@ if plaintiff_firm != "All" and defendant_firm != "All":
             autopct="%1.1f%%",
             startangle=90,
             textprops={"fontsize": 10},
-            radius=0.7  # 👈 shrinks the pie inside the figure area
+            radius=0.5  # 👈 shrinks the pie inside the figure area
         )
         ax.axis("equal")
         st.pyplot(fig)
