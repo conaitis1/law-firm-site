@@ -40,8 +40,8 @@ def extract_individual_firms(column):
     flat_firms = sorted(set(firm.strip() for sublist in all_firms for firm in sublist if firm.strip()))
     return flat_firms
 
-plaintiff_firm_options = ["All"] + extract_individual_firms("Plaintiff Firms")
-defendant_firm_options = ["All"] + extract_individual_firms("Defendant Firms")
+plaintiff_firm_options = [""] + extract_individual_firms("Plaintiff Firms")
+defendant_firm_options = [""] + extract_individual_firms("Defendant Firms")
 
 plaintiff_firm = st.sidebar.selectbox("Plaintiff Firm", plaintiff_firm_options)
 defendant_firm = st.sidebar.selectbox("Defendant Firm", defendant_firm_options)
@@ -61,7 +61,7 @@ filters = {
 
 filter_values = {}
 for col, label in filters.items():
-    options = ["All"] + safe_unique(col)
+    options = [""] + safe_unique(col)
     filter_values[col] = st.sidebar.selectbox(label, options)
 
 use_case_filter = st.sidebar.checkbox("Enable Minimum Case Filter", value=True)
