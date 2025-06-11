@@ -78,7 +78,7 @@ for col, label in filters.items():
 
 
 
-use_case_filter = st.sidebar.checkbox("Enable Minimum Case Filter", value=True)
+use_case_filter = st.sidebar.checkbox("Enable Minimum Case Filter", value=False)
 max_case_count = df.groupby(['Plaintiff Firms', 'Defendant Firms']).size().max()
 min_case_count = st.sidebar.slider("Minimum Cases Between Firms", 1, int(max_case_count), 5)
 
