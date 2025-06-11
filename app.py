@@ -40,11 +40,23 @@ def extract_individual_firms(column):
     flat_firms = sorted(set(firm.strip() for sublist in all_firms for firm in sublist if firm.strip()))
     return flat_firms
 
+# Plaintiff Firm
 plaintiff_firm_options = ["All"] + extract_individual_firms("Plaintiff Firms")
-defendant_firm_options = ["All"] + extract_individual_firms("Defendant Firms")
+plaintiff_firm = st.sidebar.selectbox(
+    "Plaintiff Firm", 
+    plaintiff_firm_options, 
+    index=None,  # 👈 makes it look empty until user clicks
+    placeholder="Select firm..."
+)
 
-plaintiff_firm = st.sidebar.selectbox("Plaintiff Firm", plaintiff_firm_options)
-defendant_firm = st.sidebar.selectbox("Defendant Firm", defendant_firm_options)
+# Defendant Firm
+defendant_firm_options = ["All"] + extract_individual_firms("Defendant Firms")
+defendant_firm = st.sidebar.selectbox(
+    "Defendant Firm", 
+    defendant_firm_options, 
+    index=None,
+    placeholder="Select firm..."
+)
 
 filters = {
     "PO YN": "PO YN",
@@ -73,10 +85,12 @@ filtered_df = df.copy()
 
 if case_status != "All":
     filtered_df = filtered_df[filtered_df["CaseStatus"] == case_status]
-if plaintiff_firm != "All":
+if plaintiff_firm and plaintiff_firm != "All":
     filtered_df = filtered_df[filtered_df["Plaintiff Firms"].astype(str).str.contains(plaintiff_firm)]
-if defendant_firm != "All":
+
+if defendant_firm and defendant_firm != "All":
     filtered_df = filtered_df[filtered_df["Defendant Firms"].astype(str).str.contains(defendant_firm)]
+
 for col, val in filter_values.items():
     if val != "All" and col in filtered_df.columns:
         filtered_df = filtered_df[filtered_df[col] == val]
