@@ -200,3 +200,32 @@ AgGrid(
 
 
 st.markdown(f"### Total Cases Displayed: {len(filtered_df)}")
+
+import matplotlib.pyplot as plt
+
+# Load firm matchup sheet (Sheet2) once
+@st.cache_data
+def load_matchup_data():
+    return pd.read_excel("firm_vs_firm_2sheet.xlsx", sheet_name="Sheet2", engine="openpyxl")
+
+matchup_df = load_matchup_data()
+
+# Show pie chart only if both dropdowns are filtered away from "All"
+if plaintiff_firm != "All" and defendant_firm != "All":
+    st.subheader("📊 Outcome Distribution for Selected Firm Matchup")
+    
+    row = matchup_df[
+        (matchup_df["Plaintiff Firm"].str.strip() == plaintiff_firm.strip()) &
+        (matchup_df["Defendant Firm"].str.strip() == defendant_firm.strip())
+    ]
+
+    if not row.empty:
+        row = row.iloc[0]
+        sizes = [row["Settled"], row["Dismissed"], row["Other"]]
+        labels = ["Settled", "Dismissed", "Other"]
+        fig, ax = plt.subplots()
+        ax.pie(sizes, labels=labels, autopct="%1.1f%%", startangle=90)
+        ax.axis("equal")
+        st.pyplot(fig)
+    else:
+        st.info("No pie chart available: this exact firm matchup was not found in the outcome dataset.")
