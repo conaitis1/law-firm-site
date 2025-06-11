@@ -74,7 +74,13 @@ filters = {
 filter_values = {}
 for col, label in filters.items():
     options = ["All"] + safe_unique(col)
-    filter_values[col] = st.sidebar.selectbox(label, options)
+    filter_values[col] = st.sidebar.selectbox(
+        label,
+        options,
+        index=None,  # no preselected value
+        placeholder="Select..."
+    )
+
 
 use_case_filter = st.sidebar.checkbox("Enable Minimum Case Filter", value=True)
 max_case_count = df.groupby(['Plaintiff Firms', 'Defendant Firms']).size().max()
@@ -92,8 +98,9 @@ if defendant_firm and defendant_firm != "All":
     filtered_df = filtered_df[filtered_df["Defendant Firms"].astype(str).str.contains(defendant_firm)]
 
 for col, val in filter_values.items():
-    if val != "All" and col in filtered_df.columns:
+    if val and val != "All" and col in filtered_df.columns:
         filtered_df = filtered_df[filtered_df[col] == val]
+
 
 if "ClassStartDate" in filtered_df.columns:
     class_start = pd.to_datetime(filtered_df["ClassStartDate"], errors="coerce")
