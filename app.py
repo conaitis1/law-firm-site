@@ -233,7 +233,8 @@ if plaintiff_firm != "All" and defendant_firm != "All":
             radius=0.2  # 👈 shrinks the pie inside the figure area
         )
         ax.axis("equal")
-        st.pyplot(fig)
+        st.pyplot(fig, clear_figure=True, use_container_width=False, dpi=150, bbox_inches="tight")
+
 
 
     else:
