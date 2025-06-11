@@ -73,13 +73,9 @@ filters = {
 
 filter_values = {}
 for col, label in filters.items():
-    options = ["All"] + safe_unique(col)
-    filter_values[col] = st.sidebar.selectbox(
-        label,
-        options,
-        index=None,  # no preselected value
-        placeholder="Select..."
-    )
+    options = ["Select..."] + safe_unique(col)
+    filter_values[col] = st.sidebar.selectbox(label, options, index=0)
+
 
 
 use_case_filter = st.sidebar.checkbox("Enable Minimum Case Filter", value=True)
@@ -98,7 +94,7 @@ if defendant_firm and defendant_firm != "All":
     filtered_df = filtered_df[filtered_df["Defendant Firms"].astype(str).str.contains(defendant_firm)]
 
 for col, val in filter_values.items():
-    if val and val != "All" and col in filtered_df.columns:
+    if val != "Select..." and col in filtered_df.columns:
         filtered_df = filtered_df[filtered_df[col] == val]
 
 
