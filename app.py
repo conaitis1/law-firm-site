@@ -223,13 +223,13 @@ if plaintiff_firm != "All" and defendant_firm != "All":
         row = row.iloc[0]
         sizes = [row["Settled"], row["Dismissed"], row["Other"]]
         labels = ["Settled", "Dismissed", "Other"]
-        fig, ax = plt.subplots(figsize=(2, 2))  # smaller chart
+        fig, ax = plt.subplots(figsize=(.8, .8))  # smaller chart
         ax.pie(
             sizes,
             labels=labels,
             autopct="%1.1f%%",
             startangle=90,
-            textprops={"fontsize": 5}  # 👈 smaller font for both labels and percentages
+            textprops={"fontsize": 2}  # 👈 smaller font for both labels and percentages
         )
         ax.axis("equal")
         st.pyplot(fig)
