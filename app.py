@@ -32,9 +32,7 @@ st.sidebar.title("🔍 Filter Cases")
 def safe_unique(colname):
     return sorted(df[colname].dropna().unique()) if colname in df.columns else []
 
-case_status_options = ["All"] + safe_unique("CaseStatus")
-case_status = st.sidebar.selectbox("Case Status", case_status_options, index=0, placeholder="Select status...")
-
+case_status = st.sidebar.selectbox("Case Status", ["All"] + safe_unique("CaseStatus"))
 year_range = st.sidebar.slider("Class Start Year Range", 2000, 2025, (2010, 2025))
 
 def extract_individual_firms(column):
@@ -43,10 +41,10 @@ def extract_individual_firms(column):
     return flat_firms
 
 plaintiff_firm_options = ["All"] + extract_individual_firms("Plaintiff Firms")
-plaintiff_firm = st.sidebar.selectbox("Plaintiff Firm", plaintiff_firm_options, index=0, placeholder="Select firm...")
-
 defendant_firm_options = ["All"] + extract_individual_firms("Defendant Firms")
-defendant_firm = st.sidebar.selectbox("Defendant Firm", defendant_firm_options, index=0, placeholder="Select firm...")
+
+plaintiff_firm = st.sidebar.selectbox("Plaintiff Firm", plaintiff_firm_options)
+defendant_firm = st.sidebar.selectbox("Defendant Firm", defendant_firm_options)
 
 filters = {
     "PO YN": "PO YN",
@@ -64,13 +62,7 @@ filters = {
 filter_values = {}
 for col, label in filters.items():
     options = ["All"] + safe_unique(col)
-    filter_values[col] = st.sidebar.selectbox(
-        label,
-        options,
-        index=0,
-        placeholder="Select..."
-    )
-
+    filter_values[col] = st.sidebar.selectbox(label, options)
 
 use_case_filter = st.sidebar.checkbox("Enable Minimum Case Filter", value=True)
 max_case_count = df.groupby(['Plaintiff Firms', 'Defendant Firms']).size().max()
