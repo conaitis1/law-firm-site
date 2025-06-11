@@ -228,7 +228,13 @@ def load_matchup_data():
 matchup_df = load_matchup_data()
 
 # Show pie chart only if both dropdowns are filtered away from "All"
-if plaintiff_firm != "All" and defendant_firm != "All":
+if (
+    plaintiff_firm is not None and 
+    defendant_firm is not None and 
+    plaintiff_firm != "All" and 
+    defendant_firm != "All"
+):
+
     st.subheader("📊 Outcome Distribution for Selected Firm Matchup")
     
     row = matchup_df[
