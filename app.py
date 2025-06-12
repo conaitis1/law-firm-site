@@ -19,10 +19,10 @@ st.markdown(
         z-index: 9999;
     }
     </style>
+    <div class="top-right-logo">
     """,
     unsafe_allow_html=True
 )
-st.markdown('<div class="logo-container">', unsafe_allow_html=True)
 st.image(image, width=120)
 st.markdown('</div>', unsafe_allow_html=True)
 
