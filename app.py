@@ -9,7 +9,6 @@ import streamlit as st
 
 # Load and display the image in top-right corner
 image = Image.open("logo.png")
-image = Image.open("logo.png")
 
 # Set up fixed-position logo in top-right corner using HTML
 st.markdown(
@@ -22,7 +21,7 @@ st.markdown(
         z-index: 10000;
     </style>
     <div class="top-right-logo">
-        <img src="https://github.com/conaitis1/law-firm-site/blob/main/logo.png" width="120">
+        <img src="https://raw.githubusercontent.com/conaitis1/law-firm-site/main/logo.png" width="120">
     </div>
     """,
     unsafe_allow_html=True
