@@ -27,10 +27,6 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-st.markdown('<div class="logo-fix">', unsafe_allow_html=True)
-st.image(image, width=100)
-st.markdown('</div>', unsafe_allow_html=True)
-
 @st.cache_data
 def load_data():
     return pd.read_excel("modified_law_firm_data.xlsx", engine="openpyxl")
