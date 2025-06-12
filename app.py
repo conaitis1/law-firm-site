@@ -4,6 +4,28 @@ from st_aggrid import AgGrid, GridOptionsBuilder, JsCode
 
 st.set_page_config(page_title="Law Firm Case Explorer", layout="wide")
 
+from PIL import Image
+import streamlit as st
+
+# Load and display the image in top-right corner
+image = Image.open("logo.png")
+st.markdown(
+    """
+    <style>
+    .logo-container {
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        z-index: 9999;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+st.markdown('<div class="logo-container">', unsafe_allow_html=True)
+st.image(image, width=120)
+st.markdown('</div>', unsafe_allow_html=True)
+
 @st.cache_data
 def load_data():
     return pd.read_excel("modified_law_firm_data.xlsx", engine="openpyxl")
