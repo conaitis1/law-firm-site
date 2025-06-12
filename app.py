@@ -9,25 +9,25 @@ import streamlit as st
 
 # Load and display the image in top-right corner
 image = Image.open("logo.png")
+image = Image.open("logo.png")
+
 st.markdown(
     """
     <style>
-    .top-right-logo {
+    .logo-fix {
         position: fixed;
-        top: 15px;
-        right: 15px;
-        z-index: 9999;
+        top: 10px;
+        right: 20px;
+        z-index: 10000;
         background-color: white;
-        padding: 2px;
+        padding: 4px;
     }
     </style>
-    <div class="top-right-logo">
-        <img src="logo.png" width="120">
-    </div>
     """,
     unsafe_allow_html=True
 )
-st.image(image, width=120)
+st.markdown('<div class="logo-fix">', unsafe_allow_html=True)
+st.image(image, width=100)
 st.markdown('</div>', unsafe_allow_html=True)
 
 @st.cache_data
