@@ -11,21 +11,23 @@ import streamlit as st
 image = Image.open("logo.png")
 image = Image.open("logo.png")
 
+# Set up fixed-position logo in top-right corner using HTML
 st.markdown(
     """
     <style>
-    .logo-fix {
+    .top-right-logo {
         position: fixed;
         top: 10px;
-        right: 20px;
+        right: 10px;
         z-index: 10000;
-        background-color: white;
-        padding: 4px;
-    }
     </style>
+    <div class="top-right-logo">
+        <img src="https://github.com/conaitis1/law-firm-site/blob/main/logo.png" width="120">
+    </div>
     """,
     unsafe_allow_html=True
 )
+
 st.markdown('<div class="logo-fix">', unsafe_allow_html=True)
 st.image(image, width=100)
 st.markdown('</div>', unsafe_allow_html=True)
