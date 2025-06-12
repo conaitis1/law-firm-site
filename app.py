@@ -12,14 +12,18 @@ image = Image.open("logo.png")
 st.markdown(
     """
     <style>
-    .logo-container {
+    .top-right-logo {
         position: fixed;
-        top: 10px;
-        right: 150px;
+        top: 15px;
+        right: 15px;
         z-index: 9999;
+        background-color: white;
+        padding: 2px;
     }
     </style>
     <div class="top-right-logo">
+        <img src="logo.png" width="120">
+    </div>
     """,
     unsafe_allow_html=True
 )
