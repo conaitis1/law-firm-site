@@ -16,8 +16,8 @@ st.markdown(
     <style>
     .top-right-logo {
         position: fixed;
-        top: 60px;
-        right: 40px;
+        top: 100px;
+        right: 60px;
         z-index: 10000;
     </style>
     <div class="top-right-logo">
