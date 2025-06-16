@@ -117,10 +117,10 @@ if plaintiff_firm and plaintiff_firm != "All":
 
 if defendant_firm and defendant_firm != "All":
     filtered_df = filtered_df[filtered_df["Defendant Firms"].astype(str).str.contains(defendant_firm)]
-if siccode_input.strip():
-    filtered_df = filtered_df[
-        filtered_df["SICCode"].astype(str).str.strip() == siccode_input.strip()
-    ]
+if siccode_input.strip().isdigit():
+    siccode_num = float(siccode_input.strip())
+    filtered_df = filtered_df[filtered_df["SICCode"] == siccode_num]
+
 
 
 
