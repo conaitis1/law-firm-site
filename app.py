@@ -57,6 +57,8 @@ def safe_unique(colname):
 
 case_status = st.sidebar.selectbox("Case Status", ["All"] + safe_unique("CaseStatus"))
 year_range = st.sidebar.slider("Class Start Year Range", 2000, 2025, (2010, 2025))
+siccode_input = st.sidebar.text_input("Filter by SICCode (exact match)", "")
+
 
 def extract_individual_firms(column):
     all_firms = df[column].dropna().astype(str).str.split(";")
@@ -115,6 +117,9 @@ if plaintiff_firm and plaintiff_firm != "All":
 
 if defendant_firm and defendant_firm != "All":
     filtered_df = filtered_df[filtered_df["Defendant Firms"].astype(str).str.contains(defendant_firm)]
+if siccode_input.strip() != "":
+    filtered_df = filtered_df[filtered_df["SICCode"].astype(str) == siccode_input.strip()]
+
 
 for col, val in filter_values.items():
     if val != "Select..." and col in filtered_df.columns:
