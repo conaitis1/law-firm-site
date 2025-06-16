@@ -117,8 +117,11 @@ if plaintiff_firm and plaintiff_firm != "All":
 
 if defendant_firm and defendant_firm != "All":
     filtered_df = filtered_df[filtered_df["Defendant Firms"].astype(str).str.contains(defendant_firm)]
-if siccode_input.strip() != "":
-    filtered_df = filtered_df[filtered_df["SICCode"].astype(str) == siccode_input.strip()]
+if siccode_input.strip():
+    filtered_df = filtered_df[
+        filtered_df["SICCode"].astype(str).str.strip() == siccode_input.strip()
+    ]
+
 
 
 for col, val in filter_values.items():
