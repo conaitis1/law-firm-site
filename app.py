@@ -267,31 +267,63 @@ matchup_df = load_matchup_data()
 
 # Only show pie chart if filtered_df is not empty and one or both firms selected
 if not filtered_df.empty:
-    st.subheader("📊 Outcome Distribution for Filtered Results")
+    st.subheader("📊 Outcome Distribution and Settlement Amount Summary")
 
-    # Step 1: Remove 'Active' cases
-    pie_df = filtered_df[filtered_df["CaseStatus"].str.strip().str.lower() != "active"]
+    # Split into two columns
+    col1, col2 = st.columns([1, 1])
 
-    # Step 2: Group all other outcomes as "Other"
-    outcome_mapped = pie_df["CaseStatus"].apply(lambda x: x if x in ["Settled", "Dismissed"] else "Other")
-    outcome_counts = outcome_mapped.value_counts()
+    # === PIE CHART (left column) ===
+    with col1:
+        pie_df = filtered_df[filtered_df["CaseStatus"].str.strip().str.lower() != "active"]
+        outcome_mapped = pie_df["CaseStatus"].apply(lambda x: x if x in ["Settled", "Dismissed"] else "Other")
+        outcome_counts = outcome_mapped.value_counts()
 
-    if len(outcome_counts) > 0:
-        labels = outcome_counts.index.tolist()
-        sizes = outcome_counts.values.tolist()
+        if not outcome_counts.empty:
+            import matplotlib.pyplot as plt
+            fig, ax = plt.subplots(figsize=(4, 4), dpi=150)
+            ax.pie(
+                outcome_counts.values,
+                labels=outcome_counts.index,
+                autopct="%1.1f%%",
+                startangle=90,
+                textprops={"fontsize": 8},
+            )
+            ax.axis("equal")
+            st.pyplot(fig, use_container_width=False, clear_figure=True)
+        else:
+            st.info("Not enough outcome data to plot.")
 
-        fig, ax = plt.subplots(figsize=(4, 4), dpi=150)  # keeps all scaling
-    ax.pie(
-        sizes,
-        labels=labels,
-        autopct="%1.1f%%",
-        startangle=90,
-        textprops={"fontsize": 8},
-    )
-    ax.axis("equal")
+    # === TOTAL AMOUNT SUMMARY TABLE (right column) ===
+    with col2:
+        total_amounts = filtered_df["TotalAmount"].dropna()
+        total_amounts = total_amounts[total_amounts > 0]
 
-# Don't stretch it — force Streamlit to respect size
-    st.pyplot(fig, use_container_width=False, clear_figure=True)
+        if not total_amounts.empty:
+            # Define bins and labels
+            bins = [0, 1_000_000, 5_000_000, 10_000_000, 15_000_000, 20_000_000, 25_000_000,
+                    30_000_000, 40_000_000, 50_000_000, 100_000_000, float("inf")]
+            labels = [
+                "Under $1M", "Under $5M", "Under $10M", "Under $15M", "Under $20M",
+                "Under $25M", "Under $30M", "Under $40M", "Under $50M",
+                "Over $50M", "Over $100M"
+            ]
 
-else:
-    st.info("Not enough outcome data to plot.")
+            avg = total_amounts.mean()
+            median = total_amounts.median()
+
+            binned = pd.cut(total_amounts, bins=bins, labels=labels, right=True)
+            percentages = binned.value_counts(normalize=True).reindex(labels).fillna(0) * 100
+
+            table_data = pd.DataFrame({
+                "Range": ["Average", "Median"] + labels,
+                "Value": [avg, median] + percentages.tolist()
+            })
+
+            # Format and display
+            table_data["Value"] = table_data["Value"].apply(
+                lambda x: f"${x:,.0f}" if table_data["Range"].iloc[table_data["Value"].tolist().index(x)] in ["Average", "Median"] else f"{x:.1f}%"
+            )
+            st.table(table_data)
+        else:
+            st.info("No TotalAmount data available for this filter.")
+
