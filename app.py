@@ -266,7 +266,7 @@ def load_matchup_data():
 matchup_df = load_matchup_data()
 
 # Only show pie chart if filtered_df is not empty and one or both firms selected
-if not filtered_df.empty and (plaintiff_firm != "All" or defendant_firm != "All"):
+if not filtered_df.empty:
 
     st.subheader("📊 Outcome Distribution for Selected Filter")
 
