@@ -295,10 +295,10 @@ if not filtered_df.empty:
 
     # === TOTAL AMOUNT SUMMARY TABLE (right column) ===
     with col2:
-        total_amounts = filtered_df["TotalAmount"].dropna()
-        total_amounts = total_amounts[total_amounts > 0]
+        total_amounts = filtered_df["TotalAmount"].fillna(0)
 
-        if not total_amounts.empty:
+
+        if (total_amounts > 0).any():
             # Define bins and labels
             bins = [0, 1_000_000, 5_000_000, 10_000_000, 15_000_000, 20_000_000, 25_000_000,
                     30_000_000, 40_000_000, 50_000_000, 100_000_000, float("inf")]
