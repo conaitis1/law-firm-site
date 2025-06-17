@@ -267,16 +267,16 @@ matchup_df = load_matchup_data()
 
 # Only show pie chart if filtered_df is not empty and one or both firms selected
 if not filtered_df.empty:
+    st.subheader("📊 Outcome Distribution for Filtered Results")
 
-    st.subheader("📊 Outcome Distribution for Selected Filter")
+    # Step 1: Remove 'Active' cases
+    pie_df = filtered_df[filtered_df["CaseStatus"].str.strip().str.lower() != "active"]
 
-    # Count outcomes in the filtered data
-    outcome_counts = filtered_df["CaseStatus"].value_counts()
-    
-    # Only show if we have at least 2 categories to compare
+    # Step 2: Group all other outcomes as "Other"
+    outcome_mapped = pie_df["CaseStatus"].apply(lambda x: x if x in ["Settled", "Dismissed"] else "Other")
+    outcome_counts = outcome_mapped.value_counts()
+
     if len(outcome_counts) > 0:
-        import matplotlib.pyplot as plt
-
         labels = outcome_counts.index.tolist()
         sizes = outcome_counts.values.tolist()
 
