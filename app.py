@@ -280,16 +280,18 @@ if not filtered_df.empty:
         labels = outcome_counts.index.tolist()
         sizes = outcome_counts.values.tolist()
 
-        fig, ax = plt.subplots()
-        ax.pie(
-            sizes,
-            labels=labels,
-            autopct="%1.1f%%",
-            startangle=90,
-            textprops={"fontsize": 10},
-            radius=0.25,
-        )
-        ax.axis("equal")
-        st.pyplot(fig, clear_figure=True)
-    else:
-        st.info("Not enough outcome data to plot.")
+        fig, ax = plt.subplots(figsize=(4, 4), dpi=150)  # keeps all scaling
+    ax.pie(
+        sizes,
+        labels=labels,
+        autopct="%1.1f%%",
+        startangle=90,
+        textprops={"fontsize": 8},
+    )
+    ax.axis("equal")
+
+# Don't stretch it — force Streamlit to respect size
+    st.pyplot(fig, use_container_width=False, clear_figure=True)
+
+else:
+    st.info("Not enough outcome data to plot.")
