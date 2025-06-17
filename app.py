@@ -330,5 +330,5 @@ if not filtered_df.empty:
             table_data.reset_index(drop=True),
             use_container_width=True,
             hide_index=True,
-            height=550
+            height=525
         )
