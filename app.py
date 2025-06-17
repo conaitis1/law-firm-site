@@ -329,6 +329,6 @@ if not filtered_df.empty:
         st.dataframe(
             table_data.reset_index(drop=True),
             use_container_width=True,
-            hide_index=True
+            hide_index=True,
             height=600
         )
