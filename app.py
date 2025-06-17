@@ -326,4 +326,4 @@ if not filtered_df.empty:
             "Value": value_col
         })
 
-        st.table(table_data)
+        st.table(table_data.reset_index(drop=True))
