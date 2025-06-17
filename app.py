@@ -280,7 +280,8 @@ if not filtered_df.empty:
         labels = outcome_counts.index.tolist()
         sizes = outcome_counts.values.tolist()
 
-        fig, ax = plt.subplots()
+        fig, ax = plt.subplots(figsize=(3, 3))  # You can try (2.5, 2.5) or (3.5, 3.5) as well
+
         ax.pie(
             sizes,
             labels=labels,
