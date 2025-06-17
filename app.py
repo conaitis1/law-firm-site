@@ -265,21 +265,22 @@ def load_matchup_data():
 
 matchup_df = load_matchup_data()
 
-# Only show pie chart if filtered_df is not empty and one or both firms selected
+# Only show pie chart and summary table if there's data
 if not filtered_df.empty:
     st.subheader("📊 Outcome Distribution and Settlement Amount Summary")
 
-    # Split into two columns
+    # Split layout into two columns
     col1, col2 = st.columns([1, 1])
 
     # === PIE CHART (left column) ===
     with col1:
         pie_df = filtered_df[filtered_df["CaseStatus"].str.strip().str.lower() != "active"]
-        outcome_mapped = pie_df["CaseStatus"].apply(lambda x: x if x in ["Settled", "Dismissed"] else "Other")
+        outcome_mapped = pie_df["CaseStatus"].apply(
+            lambda x: x if x in ["Settled", "Dismissed"] else "Other"
+        )
         outcome_counts = outcome_mapped.value_counts()
 
         if not outcome_counts.empty:
-            import matplotlib.pyplot as plt
             fig, ax = plt.subplots(figsize=(4, 4), dpi=150)
             ax.pie(
                 outcome_counts.values,
@@ -297,33 +298,26 @@ if not filtered_df.empty:
     with col2:
         total_amounts = filtered_df["TotalAmount"].fillna(0)
 
+        bins = [0, 1_000_000, 5_000_000, 10_000_000, 15_000_000, 20_000_000, 25_000_000,
+                30_000_000, 40_000_000, 50_000_000, 100_000_000, float("inf")]
+        labels = [
+            "Under $1M", "Under $5M", "Under $10M", "Under $15M", "Under $20M",
+            "Under $25M", "Under $30M", "Under $40M", "Under $50M",
+            "Over $50M", "Over $100M"
+        ]
 
         if (total_amounts > 0).any():
-            # Define bins and labels
-            bins = [0, 1_000_000, 5_000_000, 10_000_000, 15_000_000, 20_000_000, 25_000_000,
-                    30_000_000, 40_000_000, 50_000_000, 100_000_000, float("inf")]
-            labels = [
-                "Under $1M", "Under $5M", "Under $10M", "Under $15M", "Under $20M",
-                "Under $25M", "Under $30M", "Under $40M", "Under $50M",
-                "Over $50M", "Over $100M"
-            ]
-
             avg = total_amounts.mean()
             median = total_amounts.median()
-
             binned = pd.cut(total_amounts, bins=bins, labels=labels, right=True)
             percentages = binned.value_counts(normalize=True).reindex(labels).fillna(0) * 100
-
-            table_data = pd.DataFrame({
-                "Range": ["Average", "Median"] + labels,
-                "Value": [avg, median] + percentages.tolist()
-            })
-
-            # Format and display
-            table_data["Value"] = table_data["Value"].apply(
-                lambda x: f"${x:,.0f}" if table_data["Range"].iloc[table_data["Value"].tolist().index(x)] in ["Average", "Median"] else f"{x:.1f}%"
-            )
-            st.table(table_data)
+            value_col = [f"${avg:,.0f}", f"${median:,.0f}"] + [f"{val:.1f}%" for val in percentages.tolist()]
         else:
-            st.info("No TotalAmount data available for this filter.")
+            value_col = ["$0", "$0"] + ["0.0%" for _ in labels]
 
+        table_data = pd.DataFrame({
+            "Range": ["Average", "Median"] + labels,
+            "Value": value_col
+        })
+
+        st.table(table_data)
