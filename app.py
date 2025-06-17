@@ -265,38 +265,31 @@ def load_matchup_data():
 
 matchup_df = load_matchup_data()
 
-# Show pie chart only if both dropdowns are filtered away from "All"
-if (
-    plaintiff_firm is not None and 
-    defendant_firm is not None and 
-    plaintiff_firm != "All" and 
-    defendant_firm != "All"
-):
+# Only show pie chart if filtered_df is not empty and one or both firms selected
+if not filtered_df.empty and (plaintiff_firm != "All" or defendant_firm != "All"):
 
-    st.subheader("📊 Outcome Distribution for Selected Firm Matchup")
+    st.subheader("📊 Outcome Distribution for Selected Filter")
+
+    # Count outcomes in the filtered data
+    outcome_counts = filtered_df["CaseStatus"].value_counts()
     
-    row = matchup_df[
-        (matchup_df["Plaintiff Firm"].str.strip() == plaintiff_firm.strip()) &
-        (matchup_df["Defendant Firm"].str.strip() == defendant_firm.strip())
-    ]
+    # Only show if we have at least 2 categories to compare
+    if len(outcome_counts) > 0:
+        import matplotlib.pyplot as plt
 
-    if not row.empty:
-        row = row.iloc[0]
-        sizes = [row["Settled"], row["Dismissed"], row["Other"]]
-        labels = ["Settled", "Dismissed", "Other"]
-        fig, ax = plt.subplots()  # default size (6.4 x 4.8), sharp image
+        labels = outcome_counts.index.tolist()
+        sizes = outcome_counts.values.tolist()
+
+        fig, ax = plt.subplots()
         ax.pie(
             sizes,
             labels=labels,
             autopct="%1.1f%%",
             startangle=90,
             textprops={"fontsize": 10},
-            radius=0.2  # 👈 shrinks the pie inside the figure area
+            radius=0.25,
         )
         ax.axis("equal")
-        st.pyplot(fig, clear_figure=True, use_container_width=False, dpi=150, bbox_inches="tight")
-
-
-
+        st.pyplot(fig, clear_figure=True)
     else:
-        st.info("No pie chart available: this exact firm matchup was not found in the outcome dataset.")
+        st.info("Not enough outcome data to plot.")
