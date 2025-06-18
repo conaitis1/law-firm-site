@@ -224,10 +224,12 @@ grid_options = gb.build()
 grid_options["suppressSizeToFit"] = True  # Prevents all columns from stretching out
 
 # === Display ===
-st.markdown(
-    "<h1 style='text-align: center;'>Law Firm Case Explorer</h1>",
-    unsafe_allow_html=True
-)
+st.markdown("""
+    <div style='display: flex; justify-content: center; align-items: center;'>
+        <h1 style='text-align: center; margin-bottom: 0;'>Law Firm Case Explorer</h1>
+    </div>
+""", unsafe_allow_html=True)
+
 
 st.markdown("""
     <style>
