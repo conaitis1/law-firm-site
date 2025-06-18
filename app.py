@@ -224,7 +224,11 @@ grid_options = gb.build()
 grid_options["suppressSizeToFit"] = True  # Prevents all columns from stretching out
 
 # === Display ===
-st.title("Law Firm Case Explorer")
+st.markdown(
+    "<h1 style='text-align: center;'>Law Firm Case Explorer</h1>",
+    unsafe_allow_html=True
+)
+
 st.markdown("""
     <style>
     .ag-header-cell-label {
