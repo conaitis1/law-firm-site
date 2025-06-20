@@ -301,11 +301,10 @@ if not filtered_df.empty:
             st.info("Not enough outcome data to plot.")
 
     # === TOTAL AMOUNT SUMMARY TABLE (right column) ===
+    # === TOTAL AMOUNT SUMMARY TABLE (right column) ===
     with col2:
-    # Always create a table — treat blanks as 0
         total_amounts = filtered_df["TotalAmount"].fillna(0)
 
-    # Define bins and labels
         bins = [0, 1_000_000, 5_000_000, 10_000_000, 15_000_000, 20_000_000, 25_000_000,
                 30_000_000, 40_000_000, 50_000_000, 100_000_000, float("inf")]
         labels = [
@@ -314,27 +313,22 @@ if not filtered_df.empty:
             "Over $50M", "Over $100M"
         ]
 
-    # Default values
         avg = total_amounts.mean() if not total_amounts.empty else 0
         median = total_amounts.median() if not total_amounts.empty else 0
 
         if not total_amounts.empty:
             binned = pd.cut(total_amounts, bins=bins, labels=labels, right=True)
-            percentages = binned.value_counts(normalize=True).reindex(labels).fillna(0) * 100
+            counts = binned.value_counts().reindex(labels).fillna(0).cumsum()
+            total = len(total_amounts)
+            percentages = counts / total * 100
             percent_vals = [f"{val:.1f}%" for val in percentages.tolist()]
         else:
             percent_vals = ["0.0%" for _ in labels]
 
-    # Build table
         value_col = [f"${avg:,.0f}", f"${median:,.0f}"] + percent_vals
         table_data = pd.DataFrame({
             "Range": ["Average", "Median"] + labels,
             "Value": value_col
         })
 
-        st.dataframe(
-            table_data.reset_index(drop=True),
-            use_container_width=True,
-            hide_index=True,
-            height=500
-        )
+        st.table(table_data)
