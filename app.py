@@ -302,11 +302,13 @@ if not filtered_df.empty:
 
     # === TOTAL AMOUNT SUMMARY TABLE (right column) ===
     # === TOTAL AMOUNT SUMMARY TABLE (right column) ===
+   # === TOTAL AMOUNT SUMMARY TABLE (right column) ===
     with col2:
         total_amounts = filtered_df["TotalAmount"].fillna(0)
 
-        bins = [0, 1_000_000, 5_000_000, 10_000_000, 15_000_000, 20_000_000, 25_000_000,
-                30_000_000, 40_000_000, 50_000_000, 100_000_000, float("inf")]
+    # Define cumulative bins and labels
+        bins = [0, 1_000_000, 5_000_000, 10_000_000, 15_000_000, 20_000_000,
+                25_000_000, 30_000_000, 40_000_000, 50_000_000, 100_000_000, float("inf")]
         labels = [
             "Under $1M", "Under $5M", "Under $10M", "Under $15M", "Under $20M",
             "Under $25M", "Under $30M", "Under $40M", "Under $50M",
@@ -317,11 +319,16 @@ if not filtered_df.empty:
         median = total_amounts.median() if not total_amounts.empty else 0
 
         if not total_amounts.empty:
+            # Bin the data
             binned = pd.cut(total_amounts, bins=bins, labels=labels, right=True)
-            counts = binned.value_counts().reindex(labels).fillna(0).cumsum()
-            total = len(total_amounts)
-            percentages = counts / total * 100
-            percent_vals = [f"{val:.1f}%" for val in percentages.tolist()]
+            bin_counts = binned.value_counts().reindex(labels).fillna(0).astype(int)
+
+            # Compute cumulative percentages
+            cumulative_counts = bin_counts.cumsum()
+            total_cases = len(total_amounts)
+            cumulative_percentages = (cumulative_counts / total_cases) * 100
+
+            percent_vals = [f"{val:.1f}%" for val in cumulative_percentages.tolist()]
         else:
             percent_vals = ["0.0%" for _ in labels]
 
