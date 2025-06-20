@@ -307,50 +307,22 @@ if not filtered_df.empty:
         total_amounts = filtered_df["TotalAmount"].fillna(0)
         total_cases = len(total_amounts)
 
-    # Thresholds for cumulative "Under" ranges
-        under_thresholds = [
-            (1_000_000, "Under $1M"),
-            (5_000_000, "Under $5M"),
-            (10_000_000, "Under $10M"),
-            (15_000_000, "Under $15M"),
-            (20_000_000, "Under $20M"),
-            (25_000_000, "Under $25M"),
-            (30_000_000, "Under $30M"),
-            (40_000_000, "Under $40M"),
-            (50_000_000, "Under $50M")
+    # Shared thresholds
+        thresholds = [
+            1_000_000, 5_000_000, 10_000_000, 15_000_000, 20_000_000,
+            25_000_000, 30_000_000, 40_000_000, 50_000_000, 100_000_000
         ]
 
-    # Non-cumulative over-thresholds
-        over_thresholds = [
-            (50_000_000, "Over $50M"),
-            (100_000_000, "Over $100M")
-        ]
-
-    # Average and Median
+    # Compute average and median
         avg = total_amounts.mean() if total_cases > 0 else 0
         median = total_amounts.median() if total_cases > 0 else 0
 
         value_col = [f"${avg:,.0f}", f"${median:,.0f}"]
         range_labels = ["Average", "Median"]
 
-    # Cumulative Under ranges
-        for threshold, label in under_thresholds:
-            pct = (total_amounts <= threshold).sum() / total_cases * 100 if total_cases > 0 else 0
-            value_col.append(f"{pct:.1f}%")
-            range_labels.append(label)
+        # Cumulative Under $
+        for t in thresholds:
+            pct = (total_amounts <= t).sum() / total_cases * 100 if total_cases > 0 els_*
 
-    # Non-cumulative Over ranges
-        for threshold, label in over_thresholds:
-            pct = (total_amounts > threshold).sum() / total_cases * 100 if total_cases > 0 else 0
-            value_col.append(f"{pct:.1f}%")
-            range_labels.append(label)
-
-    # Display table
-        table_data = pd.DataFrame({
-            "Range": range_labels,
-            "Value": value_col
-        })
-
-        st.table(table_data)
 
 
