@@ -305,37 +305,37 @@ if not filtered_df.empty:
    # === TOTAL AMOUNT SUMMARY TABLE (right column) ===
     with col2:
         total_amounts = filtered_df["TotalAmount"].fillna(0)
+        total_cases = len(total_amounts)
 
-    # Define cumulative bins and labels
-        bins = [0, 1_000_000, 5_000_000, 10_000_000, 15_000_000, 20_000_000,
-                25_000_000, 30_000_000, 40_000_000, 50_000_000, 100_000_000, float("inf")]
-        labels = [
-            "Under $1M", "Under $5M", "Under $10M", "Under $15M", "Under $20M",
-            "Under $25M", "Under $30M", "Under $40M", "Under $50M",
-            "Over $50M", "Over $100M"
+        thresholds = [
+            (1_000_000, "Under $1M"),
+            (5_000_000, "Under $5M"),
+            (10_000_000, "Under $10M"),
+            (15_000_000, "Under $15M"),
+            (20_000_000, "Under $20M"),
+            (25_000_000, "Under $25M"),
+            (30_000_000, "Under $30M"),
+            (40_000_000, "Under $40M"),
+            (50_000_000, "Under $50M"),
+            (100_000_000, "Under $100M"),
+            (float("inf"), "Over $100M")
         ]
 
-        avg = total_amounts.mean() if not total_amounts.empty else 0
-        median = total_amounts.median() if not total_amounts.empty else 0
+        avg = total_amounts.mean() if total_cases > 0 else 0
+        median = total_amounts.median() if total_cases > 0 else 0
 
-        if not total_amounts.empty:
-            # Bin the data
-            binned = pd.cut(total_amounts, bins=bins, labels=labels, right=True)
-            bin_counts = binned.value_counts().reindex(labels).fillna(0).astype(int)
+        value_col = [f"${avg:,.0f}", f"${median:,.0f}"]
+        range_labels = ["Average", "Median"]
 
-            # Compute cumulative percentages
-            cumulative_counts = bin_counts.cumsum()
-            total_cases = len(total_amounts)
-            cumulative_percentages = (cumulative_counts / total_cases) * 100
+        for threshold, label in thresholds:
+            pct = (total_amounts <= threshold).sum() / total_cases * 100 if total_cases > 0 else 0
+            value_col.append(f"{pct:.1f}%")
+            range_labels.append(label)
 
-            percent_vals = [f"{val:.1f}%" for val in cumulative_percentages.tolist()]
-        else:
-            percent_vals = ["0.0%" for _ in labels]
-
-        value_col = [f"${avg:,.0f}", f"${median:,.0f}"] + percent_vals
         table_data = pd.DataFrame({
-            "Range": ["Average", "Median"] + labels,
+            "Range": range_labels,
             "Value": value_col
         })
 
         st.table(table_data)
+
