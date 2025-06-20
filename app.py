@@ -307,7 +307,8 @@ if not filtered_df.empty:
         total_amounts = filtered_df["TotalAmount"].fillna(0)
         total_cases = len(total_amounts)
 
-        thresholds = [
+    # Thresholds for cumulative "Under" ranges
+        under_thresholds = [
             (1_000_000, "Under $1M"),
             (5_000_000, "Under $5M"),
             (10_000_000, "Under $10M"),
@@ -316,26 +317,40 @@ if not filtered_df.empty:
             (25_000_000, "Under $25M"),
             (30_000_000, "Under $30M"),
             (40_000_000, "Under $40M"),
-            (50_000_000, "Under $50M"),
-            (100_000_000, "Under $100M"),
-            (float("inf"), "Over $100M")
+            (50_000_000, "Under $50M")
         ]
 
+    # Non-cumulative over-thresholds
+        over_thresholds = [
+            (50_000_000, "Over $50M"),
+            (100_000_000, "Over $100M")
+        ]
+
+    # Average and Median
         avg = total_amounts.mean() if total_cases > 0 else 0
         median = total_amounts.median() if total_cases > 0 else 0
 
         value_col = [f"${avg:,.0f}", f"${median:,.0f}"]
         range_labels = ["Average", "Median"]
 
-        for threshold, label in thresholds:
+    # Cumulative Under ranges
+        for threshold, label in under_thresholds:
             pct = (total_amounts <= threshold).sum() / total_cases * 100 if total_cases > 0 else 0
             value_col.append(f"{pct:.1f}%")
             range_labels.append(label)
 
+    # Non-cumulative Over ranges
+        for threshold, label in over_thresholds:
+            pct = (total_amounts > threshold).sum() / total_cases * 100 if total_cases > 0 else 0
+            value_col.append(f"{pct:.1f}%")
+            range_labels.append(label)
+
+    # Display table
         table_data = pd.DataFrame({
             "Range": range_labels,
             "Value": value_col
         })
 
         st.table(table_data)
+
 
