@@ -320,9 +320,24 @@ if not filtered_df.empty:
         value_col = [f"${avg:,.0f}", f"${median:,.0f}"]
         range_labels = ["Average", "Median"]
 
-        # Cumulative Under $
+    # Cumulative Under $
         for t in thresholds:
-            pct = (total_amounts <= t).sum() / total_cases * 100 if total_cases > 0 els_*
+            pct = (total_amounts <= t).sum() / total_cases * 100 if total_cases > 0 else 0
+            value_col.append(f"{pct:.1f}%")
+            range_labels.append(f"Under ${t//1_000_000}M")
 
+    # Cumulative Over $
+        for t in thresholds:
+            pct = (total_amounts > t).sum() / total_cases * 100 if total_cases > 0 else 0
+            value_col.append(f"{pct:.1f}%")
+            range_labels.append(f"Over ${t//1_000_000}M")
+
+    # Build and show table
+        table_data = pd.DataFrame({
+            "Range": range_labels,
+            "Value": value_col
+        })
+
+        st.table(table_data)
 
 
