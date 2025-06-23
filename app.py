@@ -224,8 +224,13 @@ if "CaseName" in filtered_df.columns:
         autoHeight=False,
         wrapText=False
     )
-yn_columns = [col for col in df.columns if col.strip().endswith("YN")]
-for col in yn_columns:
+# 👇 Manually list the renamed YN-style columns
+tight_columns = [
+    "PO", "IPO", "Laddering", "Transactional", "IT", "GAAP",
+    "RestatedFinancials", "10B 5", "SEC 11", "SEC Action"
+]
+
+for col in tight_columns:
     if col in filtered_df.columns:
         gb.configure_column(
             col,
@@ -234,6 +239,7 @@ for col in yn_columns:
                 "textAlign": "center"
             }
         )
+
 
 grid_options = gb.build()
 grid_options["suppressSizeToFit"] = True  # Prevents all columns from stretching out
