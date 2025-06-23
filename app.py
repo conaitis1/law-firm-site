@@ -227,7 +227,7 @@ if "CaseName" in filtered_df.columns:
 # 👇 Manually list the renamed YN-style columns
 tight_columns = [
     "PO", "IPO", "Laddering", "Transactional", "IT", "GAAP",
-    "RestatedFinancials", "10B 5", "SEC 11", "SEC Action"
+    "RestatedFinancials", "10B 5", "SEC 11", "SECAction"
 ]
 
 for col in tight_columns:
