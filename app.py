@@ -87,16 +87,16 @@ defendant_firm = st.sidebar.selectbox(
 )
 
 filters = {
-    "PO YN": "PO YN",
-    "IPO YN": "IPO YN",
-    "Laddering YN": "Laddering YN",
-    "Transactional YN": "Transactional YN",
-    "IT YN": "IT YN",
-    "GAAP YN": "GAAP YN",
-    "RestatedFinancialsYN": "Restated Financials YN",
-    "10B 5 YN": "10B 5 YN",
-    "SEC 11 YN": "SEC 11 YN",
-    "SECActionYN": "SEC Action YN"
+    "PO": "PO",
+    "IPO": "IPO",
+    "Laddering": "Laddering",
+    "Transactional": "Transactional",
+    "IT": "IT",
+    "GAAP": "GAAP",
+    "RestatedFinancials": "Restated Financials",
+    "10B 5": "10B 5",
+    "SEC 11": "SEC 11",
+    "SECAction": "SEC Action"
 }
 
 filter_values = {}
