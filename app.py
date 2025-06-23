@@ -215,10 +215,25 @@ if "CaseName" in filtered_df.columns:
     gb.configure_column(
         "CaseName",
         cellStyle={
-            "textAlign": "left"
-        }
+            "textAlign": "left",
+            "whiteSpace": "nowrap",
+            "overflow": "hidden",
+            "textOverflow": "ellipsis",
+            "maxWidth": "300px"
+        },
+        autoHeight=False,
+        wrapText=False
     )
-
+yn_columns = [col for col in df.columns if col.strip().endswith("YN")]
+for col in yn_columns:
+    if col in filtered_df.columns:
+        gb.configure_column(
+            col,
+            width=80,
+            cellStyle={
+                "textAlign": "center"
+            }
+        )
 
 grid_options = gb.build()
 grid_options["suppressSizeToFit"] = True  # Prevents all columns from stretching out
