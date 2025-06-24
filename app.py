@@ -409,6 +409,8 @@ if not filtered_df.empty:
     }
 
 # Step 2: Map model.classes_ to human-readable labels
+    probs = model.predict_proba(input_df)[0]
+
     labels = [class_map[i] for i in model.classes_]
     class_prob_dict = dict(zip(labels, probs))
 
