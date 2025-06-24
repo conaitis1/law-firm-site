@@ -406,24 +406,22 @@ if not filtered_df.empty:
 
     # Show probabilities
     st.markdown("#### 🔮 Predicted Outcome Probabilities")
-    fig, ax = plt.subplots(figsize=(1, .5), dpi=100)  # compact size
+    # Show probabilities
+st.markdown("#### 🔮 Predicted Outcome Probabilities")
+    fig, ax = plt.subplots(figsize=(3.5, 2.5), dpi=150)  # same scale as pie chart
 
-    labels = model.classes_  # should be ['Settled', 'Dismissed', 'Other']
+    labels = model.classes_
     ax.barh(labels, probs, color="skyblue")
     ax.set_xlim(0, 1)
-    ax.set_xlabel("Probability", fontsize=10)
-    ax.set_ylabel("Outcome", fontsize=10)
-    ax.tick_params(axis='both', labelsize=8)
+    ax.set_xlabel("Probability", fontsize=8)
+    ax.set_ylabel("Outcome", fontsize=8)
+    ax.tick_params(axis='both', labelsize=7)
 
-# Add values on bars
+# Add probability values on bars
     for i, v in enumerate(probs):
-        ax.text(v + 0.02, i, f"{v:.2f}", va='center', fontsize=8)
+        ax.text(v + 0.01, i, f"{v:.2f}", va='center', fontsize=7)
 
-# Use st.pyplot without container width so it stays small
-    st.pyplot(fig, clear_figure=True)
-
-
-
+    st.pyplot(fig, clear_figure=True)  # no use_container_width → keeps it small
 
 else:
     st.info("Filter the table above to select a case for risk scoring.")
