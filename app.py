@@ -406,25 +406,22 @@ if not filtered_df.empty:
 
     # Show probabilities
     st.markdown("#### 🔮 Predicted Outcome Probabilities")
-    fig, ax = plt.subplots(figsize=(4, 2))  # Smaller chart
-    class_labels = ['Settled', 'Dismissed', 'Other']  # <- manually set if needed
+    fig, ax = plt.subplots(figsize=(3, 2), dpi=100)  # compact size
 
-# Make sure class_labels matches the model.classes_ order
-    if set(model.classes_) == set(class_labels):
-        labels = model.classes_
-    else:
-        labels = class_labels  # fallback
-
+    labels = model.classes_  # should be ['Settled', 'Dismissed', 'Other']
     ax.barh(labels, probs, color="skyblue")
     ax.set_xlim(0, 1)
-    ax.set_xlabel("Probability")
-    ax.set_ylabel("Outcome")
+    ax.set_xlabel("Probability", fontsize=10)
+    ax.set_ylabel("Outcome", fontsize=10)
+    ax.tick_params(axis='both', labelsize=8)
 
-# Annotate each bar with value
+# Add values on bars
     for i, v in enumerate(probs):
-        ax.text(v + 0.01, i, f"{v:.2f}", va="center", fontsize=8)
+        ax.text(v + 0.02, i, f"{v:.2f}", va='center', fontsize=8)
 
-    st.pyplot(fig)
+# Use st.pyplot without container width so it stays small
+    st.pyplot(fig, clear_figure=True)
+
 
 
 
