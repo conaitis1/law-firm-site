@@ -408,27 +408,32 @@ if not filtered_df.empty:
     st.markdown("#### 🔮 Predicted Outcome Probabilities")
     fig, ax = plt.subplots(figsize=(4, 4), dpi=150)
 
-# Explicit label mapping
-    class_map = {0: "Dismissed", 1: "Other", 2: "Settled"}  # <- match your model classes
+# Get model predictions
     probs = model.predict_proba(input_df)[0]
-    labels = [class_map[i] for i in range(len(probs))]  # force correct order
+    model_labels = model.classes_
+
+# Create a dict: label -> probability
+    probs_dict = dict(zip(model_labels, probs))
+
+# Desired label order for display
+    ordered_labels = ["Dismissed", "Settled", "Other"]
+    ordered_probs = [probs_dict.get(label, 0) for label in ordered_labels]
 
 # Plot
-    y_pos = range(len(labels))
-    ax.barh(y_pos, probs, color="skyblue")
+    y_pos = range(len(ordered_labels))
+    ax.barh(y_pos, ordered_probs, color="skyblue")
     ax.set_yticks(y_pos)
-    ax.set_yticklabels(labels, fontsize=8)
+    ax.set_yticklabels(ordered_labels, fontsize=8)
     ax.set_xlim(0, 1)
     ax.set_xlabel("Probability", fontsize=8)
     ax.set_title("Predicted Case Outcomes", fontsize=10)
     ax.tick_params(axis='x', labelsize=8)
 
-# Add values
-    for i, v in enumerate(probs):
+# Add values to bars
+    for i, v in enumerate(ordered_probs):
         ax.text(v + 0.01, i, f"{v:.2f}", va='center', fontsize=8)
 
     st.pyplot(fig, use_container_width=False, clear_figure=True)
-
 
 
 else:
