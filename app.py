@@ -401,44 +401,31 @@ if not filtered_df.empty:
         input_df[col] = input_df[col].astype("category").cat.codes
 
     # Define the preferred label order
-    preferred_labels = ["Dismissed", "Settled", "Other"]
+    # Step 1: Define correct mapping from model class indices to actual labels
+    class_map = {
+        0: "Dismissed",
+        1: "Other",
+        2: "Settled"
+    }
 
-# Get probabilities
-    probs = model.predict_proba(input_df)[0]
+# Step 2: Map model.classes_ to human-readable labels
+    labels = [class_map[i] for i in model.classes_]
+    class_prob_dict = dict(zip(labels, probs))
 
-# Map model.classes_ to their probabilities
-    label_to_prob = dict(zip(model.classes_, probs))
-
-# Get probabilities in the preferred order
-    ordered_probs = [label_to_prob.get(label, 0) for label in preferred_labels]
-    st.write("Model classes (order):", model.classes_)
-    st.write("Model probabilities:", probs)
-
-# Step 2: Map actual classes to their predicted probabilities
-    class_prob_dict = dict(zip(model.classes_, probs))
-
-# Step 3: Define visual order (you can reorder this however you want it to show)
+# Step 3: Visual order for plotting
     visual_order = ["Dismissed", "Settled", "Other"]
-
-# Step 4: Get probabilities in that order
     ordered_probs = [class_prob_dict.get(label, 0) for label in visual_order]
 
-# Plot
+# Step 4: Plot
     fig, ax = plt.subplots(figsize=(4, 4), dpi=150)
-    ax.barh(preferred_labels, ordered_probs, color="skyblue")
+    ax.barh(visual_order, ordered_probs, color="skyblue")
     ax.set_xlim(0, 1)
     ax.set_xlabel("Probability", fontsize=8)
-    ax.set_yticklabels(preferred_labels, fontsize=8)
-    ax.tick_params(axis='x', labelsize=8)
     ax.set_title("Predicted Case Outcomes", fontsize=10)
+    ax.tick_params(axis='x', labelsize=8)
+    ax.tick_params(axis='y', labelsize=8)
 
     for i, v in enumerate(ordered_probs):
         ax.text(v + 0.01, i, f"{v:.2f}", va='center', fontsize=8)
 
-    st.pyplot(fig, use_container_width=False, clear_figure=True)
-
-
-
-
-else:
-    st.info("Filter the table above to select a case for risk scoring.")
+    st.pyplot(fig, clear_figure=True, use_container_width=False)
