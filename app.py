@@ -362,6 +362,46 @@ if not filtered_df.empty:
 
         st.table(table_data)
 
+import joblib
+import numpy as np
 
+# === Risk Score Tool ===
+st.subheader("📈 Proactive Risk Scoring Tool")
 
+@st.cache_resource
+def load_model():
+    return joblib.load("rf_model.joblib")
 
+model = load_model()
+
+if not filtered_df.empty:
+    st.markdown("Select a row below to calculate its litigation risk.")
+    row_idx = st.selectbox("Choose a case index:", filtered_df.index.tolist())
+    row = filtered_df.loc[[row_idx]].copy()
+
+    # Drop columns that shouldn’t be used as inputs
+    exclude = ["CaseStatus", "SettlementID", "CaseName"]
+    input_df = row.drop(columns=[col for col in exclude if col in row.columns])
+
+    # Convert Yes/No to binary
+    for col in input_df.columns:
+        if input_df[col].isin(["Yes", "No"]).all():
+            input_df[col] = input_df[col].map({"Yes": 1, "No": 0})
+
+    # Label encode remaining categoricals
+    for col in input_df.select_dtypes(include="object").columns:
+        input_df[col] = input_df[col].astype("category").cat.codes
+
+    # Make prediction
+    probs = model.predict_proba(input_df)[0]
+    labels = model.classes_
+
+    # Show probabilities
+    st.markdown("#### 🔮 Predicted Outcome Probabilities")
+    fig, ax = plt.subplots(figsize=(6, 3))
+    ax.barh(labels, probs, color="skyblue")
+    ax.set_xlim(0, 1)
+    ax.set_xlabel("Probability")
+    st.pyplot(fig)
+else:
+    st.info("Filter the table above to select a case for risk scoring.")
