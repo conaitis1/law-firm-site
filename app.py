@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 from st_aggrid import AgGrid, GridOptionsBuilder, JsCode
 
-
 @st.cache_resource
 def load_model():
     return joblib.load("rf_model.joblib")
@@ -383,6 +382,37 @@ if not filtered_df.empty:
     st.markdown("Select a row below to calculate its litigation risk.")
     row_idx = st.selectbox("Choose a case index:", filtered_df.index.tolist())
     row = filtered_df.loc[[row_idx]].copy()
+    # Optional: map SICCode to broader industry for display
+    def map_sic_to_industry(sic):
+        try:
+            sic = int(sic)
+        except:
+            return "Unknown"
+
+        if 100 <= sic <= 1499:
+            return "Mining"
+        elif 1500 <= sic <= 1799:
+            return "Construction"
+        elif 2000 <= sic <= 3999:
+            return "Manufacturing"
+        elif 4000 <= sic <= 4999:
+            return "Transportation & Utilities"
+        elif 5000 <= sic <= 5199:
+            return "Wholesale Trade"
+        elif 5200 <= sic <= 5999:
+            return "Retail Trade"
+        elif 6000 <= sic <= 6799:
+            return "Finance, Insurance & Real Estate"
+        elif 7000 <= sic <= 8999:
+            return "Services"
+        elif 9100 <= sic <= 9729:
+            return "Public Administration"
+        else:
+            return "Unknown"
+
+# Add industry to display for selected row
+    row["Industry"] = row["SICCode"].apply(map_sic_to_industry)
+    st.markdown(f"**Industry:** {row['Industry'].values[0]}")
 
     # Drop columns that shouldn’t be used as inputs
     exclude = ["CaseStatus", "SettlementID", "CaseName"]
