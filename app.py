@@ -408,14 +408,14 @@ if not filtered_df.empty:
     st.markdown("#### 🔮 Predicted Outcome Probabilities")
     fig, ax = plt.subplots(figsize=(4, 4), dpi=150)
 
-# Explicit label mapping
-    class_map = {0: "Dismissed", 1: "Other", 2: "Settled"}  # <- match your model classes
-    probs = model.predict_proba(input_df)[0]
-    labels = [class_map[i] for i in range(len(probs))]  # force correct order
+# Desired order: Settled (top), Dismissed (middle), Other (bottom)
+    labels = ["Settled", "Dismissed", "Other"]
+    label_index = {label: i for i, label in enumerate(model.classes_)}
+    probs_dict = {label: probs[label_index[label]] for label in labels}
 
 # Plot
     y_pos = range(len(labels))
-    ax.barh(y_pos, probs, color="skyblue")
+    ax.barh(y_pos, [probs_dict[label] for label in labels], color="skyblue")
     ax.set_yticks(y_pos)
     ax.set_yticklabels(labels, fontsize=8)
     ax.set_xlim(0, 1)
@@ -424,8 +424,8 @@ if not filtered_df.empty:
     ax.tick_params(axis='x', labelsize=8)
 
 # Add values
-    for i, v in enumerate(probs):
-        ax.text(v + 0.01, i, f"{v:.2f}", va='center', fontsize=8)
+    for i, label in enumerate(labels):
+        ax.text(probs_dict[label] + 0.01, i, f"{probs_dict[label]:.2f}", va='center', fontsize=8)
 
     st.pyplot(fig, use_container_width=False, clear_figure=True)
 
