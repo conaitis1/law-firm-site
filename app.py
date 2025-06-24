@@ -406,21 +406,21 @@ if not filtered_df.empty:
 
     # Show probabilities
     st.markdown("#### 🔮 Predicted Outcome Probabilities")
-    # Show probabilities
-    fig, ax = plt.subplots(figsize=(2.5, 1.5), dpi=150)  # same scale as pie chart
+    fig, ax = plt.subplots(figsize=(4, 4), dpi=150)  # same as pie chart
 
     labels = model.classes_
     ax.barh(labels, probs, color="skyblue")
     ax.set_xlim(0, 1)
     ax.set_xlabel("Probability", fontsize=8)
-    ax.set_ylabel("Outcome", fontsize=8)
-    ax.tick_params(axis='both', labelsize=7)
+    ax.set_yticks(range(len(labels)))
+    ax.set_yticklabels(labels, fontsize=8)
+    ax.tick_params(axis='x', labelsize=8)
 
-# Add probability values on bars
     for i, v in enumerate(probs):
-        ax.text(v + 0.01, i, f"{v:.2f}", va='center', fontsize=7)
+        ax.text(v + 0.01, i, f"{v:.2f}", va='center', fontsize=8)
 
-    st.pyplot(fig, clear_figure=True)  # no use_container_width → keeps it small
+    ax.set_title("Predicted Case Outcomes", fontsize=10)
+    st.pyplot(fig, clear_figure=True)
 
 else:
     st.info("Filter the table above to select a case for risk scoring.")
