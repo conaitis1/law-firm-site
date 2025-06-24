@@ -408,8 +408,11 @@ if not filtered_df.empty:
     st.markdown("#### 🔮 Predicted Outcome Probabilities")
     fig, ax = plt.subplots(figsize=(4, 4), dpi=150)
 
-# Desired order: Settled (top), Dismissed (middle), Other (bottom)
-    labels = ["Settled", "Dismissed", "Other"]
+# Safely reorder: desired display order (Settled > Dismissed > Other), if they exist
+    desired_order = ["Settled", "Dismissed", "Other"]
+    available_labels = list(model.classes_)
+    labels = [label for label in desired_order if label in available_labels]
+
     label_index = {label: i for i, label in enumerate(model.classes_)}
     probs_dict = {label: probs[label_index[label]] for label in labels}
 
@@ -423,11 +426,12 @@ if not filtered_df.empty:
     ax.set_title("Predicted Case Outcomes", fontsize=10)
     ax.tick_params(axis='x', labelsize=8)
 
-# Add values
+# Add text labels on bars
     for i, label in enumerate(labels):
         ax.text(probs_dict[label] + 0.01, i, f"{probs_dict[label]:.2f}", va='center', fontsize=8)
 
     st.pyplot(fig, use_container_width=False, clear_figure=True)
+
 
 
 
