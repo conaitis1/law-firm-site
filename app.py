@@ -406,24 +406,26 @@ if not filtered_df.empty:
 
     # Show probabilities
     st.markdown("#### 🔮 Predicted Outcome Probabilities")
-    fig, ax = plt.subplots(figsize=(4, 4), dpi=150)  # Same as pie chart
+    fig, ax = plt.subplots(figsize=(4, 4), dpi=150)  # small and sharp
 
-# Format y-axis with correct class names
+# Use the actual class labels (Settled, Dismissed, Other)
     labels = model.classes_
-    ax.barh(labels, probs, color="skyblue")
-
-# Styling: small readable text
+    ax.barh(range(len(probs)), probs, color="skyblue")  # use index positions
     ax.set_xlim(0, 1)
     ax.set_xlabel("Probability", fontsize=8)
     ax.set_title("Predicted Case Outcomes", fontsize=10)
-    ax.tick_params(axis='both', labelsize=8)
 
-# Show probability values on bars
+# Set proper y-ticks and labels
+    ax.set_yticks(range(len(labels)))
+    ax.set_yticklabels(labels, fontsize=8)
+    ax.tick_params(axis='x', labelsize=8)
+
+# Add probability values to bars
     for i, v in enumerate(probs):
         ax.text(v + 0.01, i, f"{v:.2f}", va='center', fontsize=8)
 
+# Don't stretch the image container
     st.pyplot(fig, use_container_width=False, clear_figure=True)
-
 
 
 else:
