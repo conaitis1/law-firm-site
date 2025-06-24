@@ -422,7 +422,8 @@ if not filtered_df.empty:
     for i, v in enumerate(probs):
         ax.text(v + 0.01, i, f"{v:.2f}", va='center', fontsize=8)
 
-    st.pyplot(fig, clear_figure=True)
+    st.pyplot(fig, use_container_width=False, clear_figure=True)
+
 
 
 else:
