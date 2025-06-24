@@ -406,7 +406,7 @@ if not filtered_df.empty:
 
     # Show probabilities
     st.markdown("#### 🔮 Predicted Outcome Probabilities")
-    fig, ax = plt.subplots(figsize=(2.5, 1.5), dpi=100)  # compact size
+    fig, ax = plt.subplots(figsize=(1, .5), dpi=100)  # compact size
 
     labels = model.classes_  # should be ['Settled', 'Dismissed', 'Other']
     ax.barh(labels, probs, color="skyblue")
