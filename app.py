@@ -400,34 +400,32 @@ if not filtered_df.empty:
     for col in input_df.select_dtypes(include="object").columns:
         input_df[col] = input_df[col].astype("category").cat.codes
 
-    # Make prediction
-    probs = model.predict_proba(input_df)[0]
-    labels = model.classes_
+    # Define the preferred label order
+    preferred_labels = ["Dismissed", "Settled", "Other"]
 
-    # Show probabilities
-    st.markdown("#### 🔮 Predicted Outcome Probabilities")
-    fig, ax = plt.subplots(figsize=(4, 4), dpi=150)
-
-# Explicit label mapping
-    class_map = {0: "Dismissed", 1: "Other", 2: "Settled"}  # <- match your model classes
+# Get probabilities
     probs = model.predict_proba(input_df)[0]
-    labels = [class_map[i] for i in range(len(probs))]  # force correct order
+
+# Map model.classes_ to their probabilities
+    label_to_prob = dict(zip(model.classes_, probs))
+
+# Get probabilities in the preferred order
+    ordered_probs = [label_to_prob.get(label, 0) for label in preferred_labels]
 
 # Plot
-    y_pos = range(len(labels))
-    ax.barh(y_pos, probs, color="skyblue")
-    ax.set_yticks(y_pos)
-    ax.set_yticklabels(labels, fontsize=8)
+    fig, ax = plt.subplots(figsize=(4, 4), dpi=150)
+    ax.barh(preferred_labels, ordered_probs, color="skyblue")
     ax.set_xlim(0, 1)
     ax.set_xlabel("Probability", fontsize=8)
-    ax.set_title("Predicted Case Outcomes", fontsize=10)
+    ax.set_yticklabels(preferred_labels, fontsize=8)
     ax.tick_params(axis='x', labelsize=8)
+    ax.set_title("Predicted Case Outcomes", fontsize=10)
 
-# Add values
-    for i, v in enumerate(probs):
+    for i, v in enumerate(ordered_probs):
         ax.text(v + 0.01, i, f"{v:.2f}", va='center', fontsize=8)
 
     st.pyplot(fig, use_container_width=False, clear_figure=True)
+
 
 
 
