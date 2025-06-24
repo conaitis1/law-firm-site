@@ -436,5 +436,6 @@ if not filtered_df.empty:
     st.pyplot(fig, use_container_width=False, clear_figure=True)
 
 
+
 else:
     st.info("Filter the table above to select a case for risk scoring.")
