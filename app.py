@@ -410,6 +410,10 @@ if not filtered_df.empty:
     ax.barh(labels, probs, color="skyblue")
     ax.set_xlim(0, 1)
     ax.set_xlabel("Probability")
+    ax.set_ylabel("Predicted Outcome")  # ✅ This adds a Y-axis label
+    ax.set_yticks(range(len(labels)))   # ensures proper positioning
+    ax.set_yticklabels(labels)          # ✅ explicitly sets label names
     st.pyplot(fig)
+
 else:
     st.info("Filter the table above to select a case for risk scoring.")
