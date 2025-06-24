@@ -407,7 +407,6 @@ if not filtered_df.empty:
     # Show probabilities
     st.markdown("#### 🔮 Predicted Outcome Probabilities")
     # Show probabilities
-st.markdown("#### 🔮 Predicted Outcome Probabilities")
     fig, ax = plt.subplots(figsize=(3.5, 2.5), dpi=150)  # same scale as pie chart
 
     labels = model.classes_
