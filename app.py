@@ -406,34 +406,33 @@ if not filtered_df.empty:
 
     # Show probabilities
     st.markdown("#### 🔮 Predicted Outcome Probabilities")
-    fig, ax = plt.subplots(figsize=(4, 4), dpi=150)  # Small like pie chart
+    fig, ax = plt.subplots(figsize=(4, 4), dpi=150)  # same size as pie chart
 
-# Get the model's predicted probabilities and corresponding class labels
+# Predicted probabilities and class labels
     probs = model.predict_proba(input_df)[0]
-    labels = model.classes_  # e.g., ['Dismissed', 'Other', 'Settled']
+    labels = model.classes_.tolist()  # Ensure it's a list like ['Dismissed', 'Other', 'Settled']
 
-# Use numerical positions for bars
-    y_positions = range(len(labels))
-    ax.barh(y_positions, probs, color="skyblue")
+# Reverse both to match top-down ordering visually
+    labels = labels[::-1]
+    probs = probs[::-1]
 
-# Force labels on Y-axis
-    ax.set_yticks(y_positions)
+# Plot using index positions for bars
+    y_pos = range(len(labels))
+    ax.barh(y_pos, probs, color="skyblue")
+
+# Label axes properly
+    ax.set_yticks(y_pos)
     ax.set_yticklabels(labels, fontsize=8)
-
-# Style the rest of the chart
     ax.set_xlim(0, 1)
     ax.set_xlabel("Probability", fontsize=8)
     ax.set_title("Predicted Case Outcomes", fontsize=10)
     ax.tick_params(axis='x', labelsize=8)
 
-# Add value labels on each bar
+# Add probability text inside bars
     for i, v in enumerate(probs):
         ax.text(v + 0.01, i, f"{v:.2f}", va='center', fontsize=8)
 
     st.pyplot(fig, use_container_width=False, clear_figure=True)
-
-
-
 
 else:
     st.info("Filter the table above to select a case for risk scoring.")
