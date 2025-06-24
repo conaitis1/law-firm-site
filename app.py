@@ -2,6 +2,11 @@ import streamlit as st
 import pandas as pd
 from st_aggrid import AgGrid, GridOptionsBuilder, JsCode
 
+
+@st.cache_resource
+def load_model():
+    return joblib.load("rf_model.joblib")
+
 st.set_page_config(page_title="Law Firm Case Explorer", layout="wide")
 
 from PIL import Image
