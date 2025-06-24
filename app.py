@@ -387,6 +387,9 @@ if not filtered_df.empty:
     # Drop columns that shouldn’t be used as inputs
     exclude = ["CaseStatus", "SettlementID", "CaseName"]
     input_df = row.drop(columns=[col for col in exclude if col in row.columns])
+    # Make sure input_df matches training columns exactly
+    model_features = model.feature_names_in_  # this comes with scikit-learn >= 1.0
+    input_df = input_df.reindex(columns=model_features, fill_value=0)
 
     # Convert Yes/No to binary
     for col in input_df.columns:
