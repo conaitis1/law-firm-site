@@ -411,6 +411,17 @@ if not filtered_df.empty:
 
 # Get probabilities in the preferred order
     ordered_probs = [label_to_prob.get(label, 0) for label in preferred_labels]
+    st.write("Model classes (order):", model.classes_)
+    st.write("Model probabilities:", probs)
+
+# Step 2: Map actual classes to their predicted probabilities
+    class_prob_dict = dict(zip(model.classes_, probs))
+
+# Step 3: Define visual order (you can reorder this however you want it to show)
+    visual_order = ["Dismissed", "Settled", "Other"]
+
+# Step 4: Get probabilities in that order
+    ordered_probs = [class_prob_dict.get(label, 0) for label in visual_order]
 
 # Plot
     fig, ax = plt.subplots(figsize=(4, 4), dpi=150)
