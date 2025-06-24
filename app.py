@@ -406,14 +406,17 @@ if not filtered_df.empty:
 
     # Show probabilities
     st.markdown("#### 🔮 Predicted Outcome Probabilities")
-    fig, ax = plt.subplots(figsize=(6, 3))
+    fig, ax = plt.subplots(figsize=(4, 2))  # smaller chart
     ax.barh(labels, probs, color="skyblue")
     ax.set_xlim(0, 1)
     ax.set_xlabel("Probability")
-    ax.set_ylabel("Predicted Outcome")  # ✅ This adds a Y-axis label
-    ax.set_yticks(range(len(labels)))   # ensures proper positioning
-    ax.set_yticklabels(labels)          # ✅ explicitly sets label names
+    ax.set_ylabel("Outcome")  # label for Y-axis
+    ax.set_yticks(range(len(labels)))
+    ax.set_yticklabels(labels)  # display Settled, Dismissed, Other
+    for i, v in enumerate(probs):
+        ax.text(v + 0.01, i, f"{v:.2f}", va="center", fontsize=8)
     st.pyplot(fig)
+
 
 else:
     st.info("Filter the table above to select a case for risk scoring.")
