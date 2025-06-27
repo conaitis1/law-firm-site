@@ -36,6 +36,7 @@ def load_data():
     return pd.read_excel("modified_law_firm_data.xlsx", engine="openpyxl")
 
 df = load_data()
+st.write(df[["CashAmount", "TotalAmount", "NonCashAmount"]].dtypes)
 
 # Convert datetime columns to 'YYYY-MM-DD' strings
 date_columns = [
