@@ -61,7 +61,9 @@ def safe_unique(colname):
 
 case_status = st.sidebar.selectbox("Case Status", ["All"] + safe_unique("CaseStatus"))
 year_range = st.sidebar.slider("Class Start Year Range", 2000, 2025, (2010, 2025))
-siccode_options = ["Select..."] + sorted(df["SICCode"].dropna().unique().astype(int).astype(str).tolist())
+# Only keep values that can be safely cast to integers
+valid_siccodes = pd.to_numeric(df["SICCode"], errors="coerce").dropna().astype(int).astype(str).unique()
+siccode_options = ["Select..."] + sorted(valid_siccodes)
 siccode_input = st.sidebar.text_input("Filter by SICCode", placeholder="Enter SICCode...")
 
 
