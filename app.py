@@ -289,7 +289,7 @@ custom_css = {
 
 AgGrid(
     filtered_df,
-    gridOptions=gb.build(),
+    gridOptions=grid_options,
     enable_enterprise_modules=False,
     use_checkbox=False,
     fit_columns_on_grid_load=False,
