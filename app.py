@@ -118,6 +118,18 @@ min_case_count = st.sidebar.slider("Minimum Cases Between Firms", 1, int(max_cas
 
 # === Filtering Logic ===
 filtered_df = df.copy()
+currency_formatter = JsCode("""
+(params) => params.value != null ? '$' + Math.round(params.value).toLocaleString() : ''
+""")
+
+for col in monetary_columns:
+    if col in filtered_df.columns:
+        gb.configure_column(
+            col,
+            type=["numericColumn"],
+            valueFormatter=currency_formatter,
+            headerClass="centered-header"
+        )
 
 if case_status != "All":
     filtered_df = filtered_df[filtered_df["CaseStatus"] == case_status]
