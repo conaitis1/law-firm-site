@@ -28,8 +28,8 @@ for old, new in yn_columns.items():
 date_cols = ['ClassStartDate', 'ClassEndDate', 'FederalFilingDate']
 for col in date_cols:
     df[col] = pd.to_datetime(df[col], errors='coerce')
-    df[col] = df[col].mask(df[col].dt.year == 1900)
-    df[col] = df[col].mask(df[col].dt.year > 2025)
+    df[col] = df[col].where((df[col].dt.year >= 1900) & (df[col].dt.year <= 2025))
+
 
 # Save cleaned dataset
 df.to_excel("modified_law_firm_data.xlsx", index=False)

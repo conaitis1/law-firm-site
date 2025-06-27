@@ -371,7 +371,6 @@ import numpy as np
 
 # === Risk Score Tool ===
 st.subheader("📈 Proactive Risk Scoring Tool")
-
 @st.cache_resource
 def load_model():
     return joblib.load("rf_model.joblib")
