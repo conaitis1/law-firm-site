@@ -274,6 +274,10 @@ custom_css = {
         "justify-content": "flex-start"
     }
 }
+# Ensure filtered_df monetary columns are numeric
+for col in monetary_columns:
+    if col in filtered_df.columns:
+        filtered_df[col] = pd.to_numeric(filtered_df[col], errors='coerce')
 
 AgGrid(
     filtered_df,
