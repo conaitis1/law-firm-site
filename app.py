@@ -121,6 +121,7 @@ filtered_df = df.copy()
 currency_formatter = JsCode("""
 (params) => params.value != null ? '$' + Math.round(params.value).toLocaleString() : ''
 """)
+gb = GridOptionsBuilder.from_dataframe(filtered_df)
 
 for col in monetary_columns:
     if col in filtered_df.columns:
