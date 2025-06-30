@@ -430,7 +430,6 @@ if not filtered_df.empty:
             return "Unknown"
 
 # Add industry to display for selected row
-    row["Industry"] = row["SICCode", "FederalCourt", "FederalJudge","CaseDurationDays"].apply(map_sic_to_industry)
     # Calculate case duration if dates are available
     if "ClassStartDate" in row.columns and "ClassEndDate" in row.columns:
         row["CaseDurationDays"] = (pd.to_datetime(row["ClassEndDate"]) - pd.to_datetime(row["ClassStartDate"])).dt.days
