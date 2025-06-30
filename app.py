@@ -427,9 +427,6 @@ if not filtered_df.empty:
     # Make sure input_df matches training columns exactly
     model_features = model.feature_names_in_  # this comes with scikit-learn >= 1.0
     # Convert Yes/No to binary
-    for col in input_df.columns:
-        if input_df[col].isin(["Yes", "No"]).all():
-            input_df[col] = input_df[col].map({"Yes": 1, "No": 0})
 
 # Label encode remaining categorical columns
     for col in input_df.select_dtypes(include="object").columns:
