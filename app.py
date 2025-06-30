@@ -416,7 +416,7 @@ if not filtered_df.empty:
     if "ClassStartDate" in row.columns and "ClassEndDate" in row.columns:
         start = pd.to_datetime(row["ClassStartDate"].values[0], errors='coerce')
         end = pd.to_datetime(row["ClassEndDate"].values[0], errors='coerce')
-        row["CaseDurationDays"] = (end - start).dt.days
+        row["CaseDurationDays"] = (end - start).days
     else:
         row["CaseDurationDays"] = 0
 
