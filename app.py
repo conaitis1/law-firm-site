@@ -430,16 +430,50 @@ if not filtered_df.empty:
             return "Unknown"
 
 # Add industry to display for selected row
-    row["Industry"] = row["SICCode"].apply(map_sic_to_industry)
+    row["Industry"] = row["SICCode", "FederalCourt", "FederalJudge","CaseDurationDays"].apply(map_sic_to_industry)
+    # Calculate case duration if dates are available
+    if "ClassStartDate" in row.columns and "ClassEndDate" in row.columns:
+        row["CaseDurationDays"] = (pd.to_datetime(row["ClassEndDate"]) - pd.to_datetime(row["ClassStartDate"])).dt.days
+    else:
+        row["CaseDurationDays"] = 0  # Fallback if dates missing
+
     st.markdown(f"**Industry:** {row['Industry'].values[0]}")
 
     # Drop columns that shouldn’t be used as inputs
+    # Add CaseDurationDays column for the selected row
+    if "ClassStartDate" in row.columns and "ClassEndDate" in row.columns:
+        start = pd.to_datetime(row["ClassStartDate"].values[0], errors='coerce')
+        end = pd.to_datetime(row["ClassEndDate"].values[0], errors='coerce')
+        row["CaseDurationDays"] = (end - start).dt.days
+    else:
+        row["CaseDurationDays"] = 0
+
+# Keep only the relevant columns for prediction
     exclude = ["CaseStatus", "SettlementID", "CaseName"]
     input_df = row.drop(columns=[col for col in exclude if col in row.columns])
+
     # Make sure input_df matches training columns exactly
     model_features = model.feature_names_in_  # this comes with scikit-learn >= 1.0
-    input_df = input_df.reindex(columns=model_features, fill_value=0)
+    # Convert Yes/No to binary
+    for col in input_df.columns:
+        if input_df[col].isin(["Yes", "No"]).all():
+            input_df[col] = input_df[col].map({"Yes": 1, "No": 0})
 
+# Label encode remaining categorical columns
+    for col in input_df.select_dtypes(include="object").columns:
+        input_df[col] = input_df[col].astype("category").cat.codes
+    input_df = input_df.fillna(0)
+    input_df = input_df.reindex(columns=model_features, fill_value=0)
+    if "CaseDuration" not in input_df.columns and "ClassStartDate" in row.columns and "ClassEndDate" in row.columns:
+        start = pd.to_datetime(row["ClassStartDate"].values[0], errors='coerce')
+        end = pd.to_datetime(row["ClassEndDate"].values[0], errors='coerce')
+        input_df["CaseDuration"] = (end - start).dt.days
+
+# Keep FederalJudge and FederalCourt if present
+    for col in ["FederalJudge", "FederalCourt"]:
+        if col not in input_df.columns and col in row.columns:
+            input_df[col] = row[col].values[0]
+    
     # Convert Yes/No to binary
     for col in input_df.columns:
         if input_df[col].isin(["Yes", "No"]).all():
