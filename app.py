@@ -436,7 +436,6 @@ if not filtered_df.empty:
     else:
         row["CaseDurationDays"] = 0  # Fallback if dates missing
 
-    st.markdown(f"**Industry:** {row['Industry'].values[0]}")
 
     # Drop columns that shouldn’t be used as inputs
     # Add CaseDurationDays column for the selected row
