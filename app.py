@@ -37,6 +37,13 @@ def load_data():
 
 df = load_data()
 
+# Normalize all YN filter columns to proper "Yes"/"No"
+yn_columns = ["PO", "IPO", "Laddering", "Transactional", "IT", "GAAP",
+              "RestatedFinancials", "10B 5", "SEC 11", "SECAction"]
+for col in yn_columns:
+    if col in df.columns:
+        df[col] = df[col].astype(str).str.strip().str.capitalize().replace({"Nan": None})
+
 # Convert datetime columns to 'YYYY-MM-DD' strings
 date_columns = [
     "ClassStartDate", "ClassEndDate", "FederalFilingDate", "FinalSettlementDate",
@@ -107,7 +114,7 @@ filters = {
 
 filter_values = {}
 for col, label in filters.items():
-    options = ["Select..."] + safe_unique(col)
+    options = ["Select..."] + [val for val in ["Yes", "No"] if val in df[col].unique()]
     filter_values[col] = st.sidebar.selectbox(label, options, index=0)
 
 
