@@ -439,7 +439,7 @@ if not filtered_df.empty:
     if "CaseDuration" not in input_df.columns and "ClassStartDate" in row.columns and "ClassEndDate" in row.columns:
         start = pd.to_datetime(row["ClassStartDate"].values[0], errors='coerce')
         end = pd.to_datetime(row["ClassEndDate"].values[0], errors='coerce')
-        input_df["CaseDuration"] = (end - start).dt.days
+        input_df["CaseDuration"] = (end - start).days
 
 # Keep FederalJudge and FederalCourt if present
     for col in ["FederalJudge", "FederalCourt"]:
