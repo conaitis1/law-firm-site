@@ -16,12 +16,7 @@ if "CaseDurationDays" not in df.columns:
     df["CaseDurationDays"] = (df["ClassEndDate"] - df["ClassStartDate"]).dt.days
 
 # Select features
-features = ["FederalJudge", "FederalCourt", "CaseDurationDays", "SICCode"] + [
-    col for col in df.columns if col in [
-        "PO", "IPO", "Laddering", "Transactional", "IT", "GAAP",
-        "RestatedFinancials", "10B 5", "SEC 11", "SECAction"
-    ]
-]
+features = ["FederalJudge", "FederalCourt", "CaseDurationDays", "SICCode"]
 
 X = df[features].copy()
 y = df["CaseStatus"]
