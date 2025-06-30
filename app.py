@@ -502,15 +502,16 @@ if not filtered_df.empty:
     ordered_probs = [class_prob_dict.get(label, 0) for label in visual_order]
 
 # Step 4: Plot
+    # === Pie Chart for Predicted Probabilities ===
+    preferred_labels = ["Dismissed", "Settled", "Other"]
+
     fig, ax = plt.subplots(figsize=(4, 4), dpi=150)
-    ax.barh(visual_order, ordered_probs, color="skyblue")
-    ax.set_xlim(0, 1)
-    ax.set_xlabel("Probability", fontsize=8)
-    ax.set_title("Predicted Case Outcomes", fontsize=10)
-    ax.tick_params(axis='x', labelsize=8)
-    ax.tick_params(axis='y', labelsize=8)
-
-    for i, v in enumerate(ordered_probs):
-        ax.text(v + 0.01, i, f"{v:.2f}", va='center', fontsize=8)
-
-    st.pyplot(fig, clear_figure=True, use_container_width=False)
+    ax.pie(
+        ordered_probs,
+        labels=preferred_labels,
+        autopct="%1.1f%%",
+        startangle=140,
+        colors=["lightcoral", "skyblue", "gold"]
+    )
+    ax.set_title("Predicted Case Outcome Probabilities", fontsize=10)
+    st.pyplot(fig, clear_figure=True)
