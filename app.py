@@ -38,11 +38,10 @@ def load_data():
 df = load_data()
 
 # Normalize all YN filter columns to proper "Yes"/"No"
-yn_columns = ["PO", "IPO", "Laddering", "Transactional", "IT", "GAAP",
-              "RestatedFinancials", "10B 5", "SEC 11", "SECAction"]
+yn_columns = ["PO", "IPO", "Laddering", "Transactional", "IT", "GAAP", "RestatedFinancials", "10B 5", "SEC 11", "SECAction"]
 for col in yn_columns:
     if col in df.columns:
-        df[col] = df[col].astype(str).str.strip().str.capitalize().replace({"Nan": None})
+        df[col] = df[col].map({1: "Yes", 0: "No", "Yes": "Yes", "No": "No"})  # handles both numeric and string
 
 # Convert datetime columns to 'YYYY-MM-DD' strings
 date_columns = [
