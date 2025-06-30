@@ -114,7 +114,7 @@ filters = {
 
 filter_values = {}
 for col, label in filters.items():
-    options = ["Select..."] + [val for val in ["Yes", "No"] if val in df[col].unique()]
+    options = ["Select..."] + [val for val in ["Yes", "No"] if col in df.columns and val in df[col].unique()]
     filter_values[col] = st.sidebar.selectbox(label, options, index=0)
 
 
