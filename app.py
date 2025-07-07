@@ -392,41 +392,12 @@ import matplotlib.pyplot as plt
 
 st.subheader("📈 Predict Case Outcome Based on Inputs")
 
-# === Load model ===
-@st.cache_resource
-def load_model():
-    return joblib.load("rf_model.joblib")
-
 model = load_model()
 
-# === Input Filters ===
-st.markdown("Use the filters below to simulate a new case and predict its likely outcome.")
-
-# Build a single-row input DataFrame based on model features
-input_dict = {}
-
-model_features = model.feature_names_in_
-
-# Helper to filter and add input
-def add_filter(colname, df):
-    if df[colname].dtype == "object":
-        options = sorted(df[colname].dropna().astype(str).unique())
-        val = st.selectbox(colname, options)
-        input_dict[colname] = val
-    elif "YN" in colname:
-        val = st.selectbox(colname, ["Yes", "No"])
-        input_dict[colname] = 1 if val == "Yes" else 0
-    elif df[colname].nunique() < 20:
-        val = st.selectbox(colname, sorted(df[colname].dropna().unique()))
-        input_dict[colname] = val
-    else:
-        val = st.number_input(colname, value=float(df[colname].median()), step=1.0)
-        input_dict[colname] = val
-
-# Use the merged data to build filter choices
+# Load merged data to access all model inputs
 @st.cache_data
 def load_model_input_data():
-    xls_path = "THE BIG ANSWER SEPT.23.xlsx"
+    xls_path = "big_answer.xlsx"
     legal = pd.read_excel(xls_path, sheet_name="LEGAL", engine="openpyxl")
     financial = pd.read_excel(xls_path, sheet_name="FINANCIAL", engine="openpyxl")
     legal["CaseID_clean"] = legal["CaseID"].astype(str).str.strip()
@@ -434,42 +405,45 @@ def load_model_input_data():
     return pd.merge(legal, financial, on="CaseID_clean", suffixes=("_legal", "_fin"))
 
 df_for_inputs = load_model_input_data()
+input_dict = {}
+model_features = model.feature_names_in_
 
+# Helper: choose smart filter UI
+def add_filter(colname, df):
+    if "YN" in colname:
+        val = st.radio(colname, ["Yes", "No"], horizontal=True)
+        input_dict[colname] = 1 if val == "Yes" else 0
+    elif df[colname].dtype in ["float64", "int64"] and df[colname].nunique() > 20:
+        min_val = float(df[colname].min())
+        max_val = float(df[colname].max())
+        default = float(df[colname].median())
+        val = st.slider(colname, min_val, max_val, default)
+        input_dict[colname] = val
+    else:
+        options = sorted(df[colname].dropna().astype(str).unique())
+        val = st.selectbox(colname, options)
+        input_dict[colname] = val
 
-# Extract and normalize Yes/No flags if needed
-yn_map = {"Yes": 1, "No": 0, 1: 1, 0: 0}
-for col in df_for_inputs.columns:
-    if "YN" in col and col in model_features:
-        df_for_inputs[col] = df_for_inputs[col].map(yn_map)
-
-# Create filters dynamically
+# Generate filters
 for feature in model_features:
     if feature in df_for_inputs.columns:
         add_filter(feature, df_for_inputs)
 
-# === Run Prediction ===
+# === Prediction ===
 input_df = pd.DataFrame([input_dict])
 
-# Encode any categorical fields
+# Encode categoricals
 for col in input_df.select_dtypes(include="object").columns:
     input_df[col] = input_df[col].astype("category").cat.codes
 
-# Reindex to match model
 input_df = input_df.reindex(columns=model_features, fill_value=0)
 
-# Predict
 probs = model.predict_proba(input_df)[0]
 labels = model.classes_
-prob_dict = dict(zip(labels, probs))
 
-# === Plot pie chart ===
+# Pie chart
 fig, ax = plt.subplots(figsize=(4, 4), dpi=150)
-ax.pie(
-    probs,
-    labels=labels,
-    autopct="%1.1f%%",
-    startangle=140,
-    colors=["lightcoral", "skyblue", "gold"]
-)
+ax.pie(probs, labels=labels, autopct="%1.1f%%", startangle=140,
+       colors=["lightcoral", "skyblue", "gold"])
 ax.set_title("Predicted Case Outcome Probabilities", fontsize=10)
 st.pyplot(fig, clear_figure=True)
