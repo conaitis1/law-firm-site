@@ -426,9 +426,9 @@ def add_filter(colname, df):
 # Use the merged data to build filter choices
 @st.cache_data
 def load_model_input_data():
-    xls_path = "THE BIG ANSWER SEPT.23.xlsb"
-    legal = pd.read_excel(xls_path, sheet_name="LEGAL", engine="pyxlsb")
-    financial = pd.read_excel(xls_path, sheet_name="FINANCIAL", engine="pyxlsb")
+    xls_path = "THE BIG ANSWER SEPT.23.xlsx"
+    legal = pd.read_excel(xls_path, sheet_name="LEGAL", engine="openpyxl")
+    financial = pd.read_excel(xls_path, sheet_name="FINANCIAL", engine="openpyxl")
     legal["CaseID_clean"] = legal["CaseID"].astype(str).str.strip()
     financial["CaseID_clean"] = financial["CaseID"].astype(str).str.strip()
     return pd.merge(legal, financial, on="CaseID_clean", suffixes=("_legal", "_fin"))

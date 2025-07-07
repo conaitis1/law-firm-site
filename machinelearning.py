@@ -5,9 +5,9 @@ from sklearn.model_selection import train_test_split
 import joblib
 
 # === Load and merge ===
-xls_path = "THE BIG ANSWER SEPT.23.xlsb"
-legal_df = pd.read_excel(xls_path, sheet_name="LEGAL", engine="pyxlsb")
-financial_df = pd.read_excel(xls_path, sheet_name="FINANCIAL", engine="pyxlsb")
+xls_path = "THE BIG ANSWER SEPT.23.xlsx"
+legal_df = pd.read_excel(xls_path, sheet_name="LEGAL", engine="openpyxl")
+financial_df = pd.read_excel(xls_path, sheet_name="FINANCIAL", engine="openpyxl")
 legal_df["CaseID_clean"] = legal_df["CaseID"].astype(str).str.strip()
 financial_df["CaseID_clean"] = financial_df["CaseID"].astype(str).str.strip()
 df = pd.merge(legal_df, financial_df, on="CaseID_clean", suffixes=("_legal", "_fin"))
