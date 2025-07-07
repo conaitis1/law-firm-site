@@ -424,7 +424,17 @@ def add_filter(colname, df):
         input_dict[colname] = val
 
 # Use the merged data to build filter choices
-df_for_inputs = load_data()
+@st.cache_data
+def load_model_input_data():
+    xls_path = "THE BIG ANSWER SEPT.23.xlsb"
+    legal = pd.read_excel(xls_path, sheet_name="LEGAL", engine="pyxlsb")
+    financial = pd.read_excel(xls_path, sheet_name="FINANCIAL", engine="pyxlsb")
+    legal["CaseID_clean"] = legal["CaseID"].astype(str).str.strip()
+    financial["CaseID_clean"] = financial["CaseID"].astype(str).str.strip()
+    return pd.merge(legal, financial, on="CaseID_clean", suffixes=("_legal", "_fin"))
+
+df_for_inputs = load_model_input_data()
+
 
 # Extract and normalize Yes/No flags if needed
 yn_map = {"Yes": 1, "No": 0, 1: 1, 0: 0}
