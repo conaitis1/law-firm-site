@@ -388,3 +388,78 @@ if not filtered_df.empty:
 
 import joblib
 import numpy as np
+import matplotlib.pyplot as plt
+
+st.subheader("📈 Predict Case Outcome Based on Inputs")
+
+# === Load model ===
+@st.cache_resource
+def load_model():
+    return joblib.load("rf_model.joblib")
+
+model = load_model()
+
+# === Input Filters ===
+st.markdown("Use the filters below to simulate a new case and predict its likely outcome.")
+
+# Build a single-row input DataFrame based on model features
+input_dict = {}
+
+model_features = model.feature_names_in_
+
+# Helper to filter and add input
+def add_filter(colname, df):
+    if df[colname].dtype == "object":
+        options = sorted(df[colname].dropna().astype(str).unique())
+        val = st.selectbox(colname, options)
+        input_dict[colname] = val
+    elif "YN" in colname:
+        val = st.selectbox(colname, ["Yes", "No"])
+        input_dict[colname] = 1 if val == "Yes" else 0
+    elif df[colname].nunique() < 20:
+        val = st.selectbox(colname, sorted(df[colname].dropna().unique()))
+        input_dict[colname] = val
+    else:
+        val = st.number_input(colname, value=float(df[colname].median()), step=1.0)
+        input_dict[colname] = val
+
+# Use the merged data to build filter choices
+df_for_inputs = load_data()
+
+# Extract and normalize Yes/No flags if needed
+yn_map = {"Yes": 1, "No": 0, 1: 1, 0: 0}
+for col in df_for_inputs.columns:
+    if "YN" in col and col in model_features:
+        df_for_inputs[col] = df_for_inputs[col].map(yn_map)
+
+# Create filters dynamically
+for feature in model_features:
+    if feature in df_for_inputs.columns:
+        add_filter(feature, df_for_inputs)
+
+# === Run Prediction ===
+input_df = pd.DataFrame([input_dict])
+
+# Encode any categorical fields
+for col in input_df.select_dtypes(include="object").columns:
+    input_df[col] = input_df[col].astype("category").cat.codes
+
+# Reindex to match model
+input_df = input_df.reindex(columns=model_features, fill_value=0)
+
+# Predict
+probs = model.predict_proba(input_df)[0]
+labels = model.classes_
+prob_dict = dict(zip(labels, probs))
+
+# === Plot pie chart ===
+fig, ax = plt.subplots(figsize=(4, 4), dpi=150)
+ax.pie(
+    probs,
+    labels=labels,
+    autopct="%1.1f%%",
+    startangle=140,
+    colors=["lightcoral", "skyblue", "gold"]
+)
+ax.set_title("Predicted Case Outcome Probabilities", fontsize=10)
+st.pyplot(fig, clear_figure=True)
