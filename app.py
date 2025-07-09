@@ -453,7 +453,7 @@ probs = model.predict_proba(input_df)[0]
 labels = model.classes_
 
 # Pie chart
-fig, ax = plt.subplots(figsize=(2, 2), dpi=100)  # small chart
+fig, ax = plt.subplots(figsize=(1.5, 1.5), dpi=100)  # small chart
 ax.pie(probs, labels=labels, autopct="%1.1f%%", startangle=140,
        textprops={'fontsize': 5},  # shrink labels
        colors=["lightcoral", "skyblue", "gold"])
