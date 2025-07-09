@@ -397,78 +397,71 @@ import joblib
 import numpy as np
 import matplotlib.pyplot as plt
 
+# ===========================
+# 🚀 Predict Case Outcome
+# ===========================
+
 st.subheader("📈 Predict Case Outcome Based on Inputs")
+st.markdown("Use the filters below to simulate a new case and predict its likely outcome.")
 
-model = load_model()
+# Load model
+model = joblib.load("rf_model.joblib")
 
-# Load merged data to access all model inputs
-@st.cache_data
-def load_model_input_data():
-    xls_path = "THE BIG ANSWER SEPT.23.xlsx"
-    legal = pd.read_excel(xls_path, sheet_name="LEGAL", engine="openpyxl")
-    financial = pd.read_excel(xls_path, sheet_name="FINANCIAL", engine="openpyxl")
-    legal["CaseID_clean"] = legal["CaseID"].astype(str).str.strip()
-    financial["CaseID_clean"] = financial["CaseID"].astype(str).str.strip()
-    return pd.merge(legal, financial, on="CaseID_clean", suffixes=("_legal", "_fin"))
+# Load data for encoding and dropdowns
+xls_path = "THE BIG ANSWER SEPT.23.xlsx"
+legal_df = pd.read_excel(xls_path, sheet_name="LEGAL")
+financial_df = pd.read_excel(xls_path, sheet_name="FINANCIAL")
+df = pd.merge(legal_df, financial_df, on="CaseID", how="inner")
+df = df[df["CaseStatus_legal"] != "Active"]
 
-df_for_inputs = load_model_input_data()
-input_dict = {}
-model_features = model.feature_names_in_
+features = list(model.feature_names_in_)
+categorical_features = df[features].select_dtypes(include=["object", "bool"]).columns.tolist()
+numerical_features = [f for f in features if f not in categorical_features]
 
-# Helper: choose smart filter UI
-def add_filter(colname, df):
-    options = sorted(df[colname].dropna().astype(str).unique())
-    options = ["Select..."] + options
+# User input section
+cols = st.columns(2)
+user_input = {}
 
-    if "YN" in colname:
-        val = st.selectbox(colname, ["Select...", "Yes", "No"], index=0)
-        input_dict[colname] = (
-            1 if val == "Yes" else 0 if val == "No" else None
-        )
-
-    elif df[colname].dtype in ["float64", "int64"] and df[colname].nunique() > 20:
-        # Let user skip by typing nothing — handled naturally
-        val = st.text_input(f"{colname} (Leave blank to skip)", value="")
-        input_dict[colname] = float(val) if val.strip() != "" else None
-
+for i, feature in enumerate(features):
+    col = cols[i % 2]
+    if feature in categorical_features:
+        options = sorted(df[feature].dropna().unique())
+        selection = col.selectbox(f"{feature}", ["Select..."] + list(options))
+        user_input[feature] = selection if selection != "Select..." else None
     else:
-        val = st.selectbox(colname, options, index=0)
-        input_dict[colname] = val if val != "Select..." else None
+        min_val = float(df[feature].min())
+        max_val = float(df[feature].max())
+        default_val = float(df[feature].median())
+        val = col.slider(f"{feature}", min_val, max_val, default_val)
+        user_input[feature] = val
 
-# Generate filters
-for feature in model_features:
-    if feature in df_for_inputs.columns:
-        add_filter(feature, df_for_inputs)
+# Predict
+input_df = pd.DataFrame([user_input]).dropna(axis=1)
+merged_df = pd.concat([df[features], input_df], ignore_index=True)
+encoded = pd.get_dummies(merged_df)
+encoded = encoded.reindex(columns=model.feature_names_in_, fill_value=0)
+input_encoded = encoded.tail(1)
 
-# === Prediction ===
-input_df = pd.DataFrame([input_dict])
+# Show pie chart
+if input_encoded.shape[1] == len(model.feature_names_in_):
+    probs = model.predict_proba(input_encoded)[0]
+    labels = model.classes_
 
-# Encode categoricals
-for col in input_df.select_dtypes(include="object").columns:
-    input_df[col] = input_df[col].astype("category").cat.codes
+    st.markdown("### 🎯 Predicted Outcome Distribution")
+    col1, col2 = st.columns([1, 1])
 
-input_df = input_df.reindex(columns=model_features, fill_value=0)
+    with col1:
+        fig, ax = plt.subplots(figsize=(4, 4), dpi=150)
+        ax.pie(
+            probs,
+            labels=labels,
+            autopct="%1.1f%%",
+            startangle=90,
+            textprops={"fontsize": 8},
+            colors=plt.cm.Pastel1(np.linspace(0, 1, len(labels)))
+        )
+        ax.set_title("Prediction", fontsize=10)
+        st.pyplot(fig)
 
-probs = model.predict_proba(input_df)[0]
-labels = model.classes_
-
-# Pie chart
-col1, col2 = st.columns([1, 1])  # two equal columns
-
-with col1:
-    fig, ax = plt.subplots(figsize=(4, 4), dpi=150)
-    ax.pie(
-        probs,
-        labels=labels,
-        autopct="%1.1f%%",
-        startangle=90,
-        textprops={"fontsize": 8},
-        colors=["skyblue", "orange", "lightgreen"]
-    )
-    ax.set_title("Predicted Case Outcome Probabilities", fontsize=10)
-    plt.tight_layout(pad=0.5)
-    st.pyplot(fig, clear_figure=True)
-
-with col2:
-    st.markdown(" ")  # empty column for spacing
-
+else:
+    st.warning("Please select more input fields to enable prediction.")
