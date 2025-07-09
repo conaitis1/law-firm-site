@@ -411,18 +411,20 @@ model_features = model.feature_names_in_
 # Helper: choose smart filter UI
 def add_filter(colname, df):
     if "YN" in colname:
-        val = st.radio(colname, ["Yes", "No"], horizontal=True)
-        input_dict[colname] = 1 if val == "Yes" else 0
+        val = st.selectbox(colname, ["Select...", "Yes", "No"], index=0)
+        input_dict[colname] = 1 if val == "Yes" else 0 if val == "No" else None
+
     elif df[colname].dtype in ["float64", "int64"] and df[colname].nunique() > 20:
-        min_val = float(df[colname].min())
-        max_val = float(df[colname].max())
         default = float(df[colname].median())
-        val = st.slider(colname, min_val, max_val, default)
+        val = st.number_input(colname, value=default)
         input_dict[colname] = val
+
     else:
         options = sorted(df[colname].dropna().astype(str).unique())
-        val = st.selectbox(colname, options)
-        input_dict[colname] = val
+        options = ["Select..."] + options
+        val = st.selectbox(colname, options, index=0)
+        input_dict[colname] = val if val != "Select..." else None
+
 
 # Generate filters
 for feature in model_features:
