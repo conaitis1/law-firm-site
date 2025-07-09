@@ -26,15 +26,21 @@ features = [
     "CashAmount",
     "TotalAmount",
     "Current Ratio",
-    # Add any Violation/Tag columns here
     "ViolationType_legal",
     "Tag_Insider",
     "Tag_FinancialFraud",
     "Tag_Accounting",
     "Tag_Bribes",
-    "Tag_Whistleblower"
+    "Tag_Whistleblower",
+    # Financial sheet additions
+    "Market Cap High_fin",
+    "Market Cap Low_fin",
+    "Filing Date Market Cap",
+    "Free Float Amount",
+    "Insider Ownership",
+    "Institutional Ownership",
+    "Prior Year Revenue (TTM)"
 ]
-
 
 features = [f for f in features if f in df.columns]
 
