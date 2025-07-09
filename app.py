@@ -418,16 +418,18 @@ model_features = model.feature_names_in_
 # Helper: choose smart filter UI
 def add_filter(colname, df):
     options = sorted(df[colname].dropna().astype(str).unique())
-    options = ["Select..."] + options  # prepend ghost option
+    options = ["Select..."] + options
 
     if "YN" in colname:
         val = st.selectbox(colname, ["Select...", "Yes", "No"], index=0)
-        input_dict[colname] = 1 if val == "Yes" else 0 if val == "No" else None
+        input_dict[colname] = (
+            1 if val == "Yes" else 0 if val == "No" else None
+        )
 
     elif df[colname].dtype in ["float64", "int64"] and df[colname].nunique() > 20:
-        default = float(df[colname].median())
-        val = st.number_input(colname, value=default)
-        input_dict[colname] = val
+        # Let user skip by typing nothing — handled naturally
+        val = st.text_input(f"{colname} (Leave blank to skip)", value="")
+        input_dict[colname] = float(val) if val.strip() != "" else None
 
     else:
         val = st.selectbox(colname, options, index=0)
