@@ -9,8 +9,8 @@ def load_model():
 st.set_page_config(page_title="Law Firm Case Explorer", layout="wide")
 st.markdown("""
     <style>
-    div[data-baseweb="select"] > div {
-        color: rgba(0, 0, 0, 0.4);
+    .stSelectbox div[role="option"]:first-child {
+        color: gray;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -417,12 +417,11 @@ model_features = model.feature_names_in_
 
 # Helper: choose smart filter UI
 def add_filter(colname, df):
+    options = sorted(df[colname].dropna().astype(str).unique())
+    options = ["Select..."] + options  # prepend ghost option
+
     if "YN" in colname:
-        val = st.selectbox(
-            f"{colname}",
-            options=["Select... (Yes/No)", "Yes", "No"],
-            index=0
-        )
+        val = st.selectbox(colname, ["Select...", "Yes", "No"], index=0)
         input_dict[colname] = 1 if val == "Yes" else 0 if val == "No" else None
 
     elif df[colname].dtype in ["float64", "int64"] and df[colname].nunique() > 20:
@@ -431,12 +430,7 @@ def add_filter(colname, df):
         input_dict[colname] = val
 
     else:
-        options = sorted(df[colname].dropna().astype(str).unique())
-        val = st.selectbox(
-            f"{colname}",
-            options=["Select..."] + options,
-            index=0
-        )
+        val = st.selectbox(colname, options, index=0)
         input_dict[colname] = val if val != "Select..." else None
 
 # Generate filters
