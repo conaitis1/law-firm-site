@@ -453,7 +453,7 @@ probs = model.predict_proba(input_df)[0]
 labels = model.classes_
 
 # Pie chart
-fig, ax = plt.subplots(figsize=(3, 3), dpi=100)
+fig, ax = plt.subplots(figsize=(1, 1), dpi=50)
 ax.pie(probs, labels=labels, autopct="%1.1f%%", startangle=140,
        colors=["lightcoral", "skyblue", "gold"])
 ax.set_title("Predicted Case Outcome Probabilities", fontsize=10)
