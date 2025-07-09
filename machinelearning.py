@@ -20,7 +20,7 @@ print("✅ Class breakdown:\n", df["TargetStatus"].value_counts())
 
 # === Define usable features (NO leakage) ===
 features = [
-    "CashAmount", "TotalAmount", "Current Ratio",
+    "Current Ratio",
     "FederalJudge_legal", "FederalCourt_legal", "SICCode_legal",
     "GAAP_YN", "IPO_YN", "TransactionalYN", "PO_YN", "10B_5_YN",
     "SEC_11_YN", "SECActionYN", "RestatedFinancialsYN", "IT_YN", "LadderingYN"
