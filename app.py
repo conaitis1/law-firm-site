@@ -7,6 +7,13 @@ def load_model():
     return joblib.load("rf_model.joblib")
 
 st.set_page_config(page_title="Law Firm Case Explorer", layout="wide")
+st.markdown("""
+    <style>
+    div[data-baseweb="select"] > div {
+        color: rgba(0, 0, 0, 0.4);
+    }
+    </style>
+""", unsafe_allow_html=True)
 
 from PIL import Image
 import streamlit as st
