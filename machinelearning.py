@@ -20,11 +20,21 @@ print("✅ Class breakdown:\n", df["TargetStatus"].value_counts())
 
 # === Define usable features (NO leakage) ===
 features = [
+    "FederalJudge_legal",
+    "FederalCourt_legal",
+    "SICCode_legal",
+    "CashAmount",
+    "TotalAmount",
     "Current Ratio",
-    "FederalJudge_legal", "FederalCourt_legal", "SICCode_legal",
-    "GAAP_YN", "IPO_YN", "TransactionalYN", "PO_YN", "10B_5_YN",
-    "SEC_11_YN", "SECActionYN", "RestatedFinancialsYN", "IT_YN", "LadderingYN"
+    # Add any Violation/Tag columns here
+    "ViolationType_legal",
+    "Tag_Insider",
+    "Tag_FinancialFraud",
+    "Tag_Accounting",
+    "Tag_Bribes",
+    "Tag_Whistleblower"
 ]
+
 
 features = [f for f in features if f in df.columns]
 
