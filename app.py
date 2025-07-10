@@ -415,14 +415,19 @@ df = pd.merge(legal_df, financial_df, on="CaseID", how="inner")
 df.rename(columns={
     "FederalJudge_x": "FederalJudge_legal",
     "FederalCourt_x": "FederalCourt_legal",
-    "SICCode_x": "SICCode_legal"
+    "SICCode_x": "SICCode_legal",
+    "CaseStatus_x": "CaseStatus"
 }, inplace=True)
 
 df.columns = df.columns.str.strip()
 
 # Confirm which CaseStatus column to keep (you can switch this if needed)
 status_col = "CaseStatus_x" if "CaseStatus_x" in df.columns else "CaseStatus"
-df = df[df[status_col] != "Active"]
+if "CaseStatus" in df.columns:
+    df = df[df["CaseStatus"] != "Active"]
+else:
+    st.error("❌ 'CaseStatus' column not found in merged dataframe.")
+
 features = list(model.feature_names_in_)
 categorical_features = df[features].select_dtypes(include=["object", "bool"]).columns.tolist()
 numerical_features = [f for f in features if f not in categorical_features]
