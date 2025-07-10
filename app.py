@@ -447,6 +447,7 @@ for i, feature in enumerate(available_features):
 # Only make prediction if all required inputs are present
 if all(v is not None for v in user_input.values()):
     input_df = pd.DataFrame([user_input])
+    input_df.columns = available_features  # Ensures correct column names for model
     probs = model.predict_proba(input_df)[0]
     pred_class = model.classes_[probs.argmax()]
     st.success(f"✅ **Predicted Outcome:** {pred_class}")
