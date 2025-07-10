@@ -445,11 +445,20 @@ for i, feature in enumerate(available_features):
         user_input[feature] = val
 
 # Only make prediction if all required inputs are present
+# 🧠 Run prediction if all inputs provided
 if all(v is not None for v in user_input.values()):
     input_df = pd.DataFrame([user_input])
-    input_df.columns = available_features  # Ensures correct column names for model
+
+    # Rename columns to match the model's expected features
+    input_df.columns = available_features
+
+    # Ensure all columns are in the correct order
+    input_df = input_df[model.feature_names_in_]
+
+    # Predict probabilities
     probs = model.predict_proba(input_df)[0]
     pred_class = model.classes_[probs.argmax()]
+
     st.success(f"✅ **Predicted Outcome:** {pred_class}")
     st.write(f"🔍 Class Probabilities: {dict(zip(model.classes_, probs.round(3)))}")
 else:
