@@ -396,66 +396,60 @@ if not filtered_df.empty:
 import joblib
 import numpy as np
 import matplotlib.pyplot as plt
-@st.cache_resource
-def load_model():
-    return joblib.load("rf_model.joblib")  # adjust the filename if different
+# Predictive Model Section
+st.header("📈 Predict Case Outcome Based on Inputs")
+st.markdown("Use the filters below to simulate a new case and predict its likely outcome.")
 
-model = load_model()
-# ===========================
-# 🚀 Predict Case Outcome
-# ===========================
+model = joblib.load("rf_model.joblib")
 
-st.markdown("## 📈 Predict Case Outcome Based on Inputs")
-st.write("Use the filters below to simulate a new case and predict its likely outcome.")
+# Original expected feature names
+expected_features = list(model.feature_names_in_)
 
-# Raw features used by the model
-features = [
-    "FederalJudge_legal",
-    "FederalCourt_legal",
-    "SICCode_legal",
-    "Current Ratio",
-    "Filing Date Market Cap",
-    "Insider Ownership",
-    "Institutional Ownership",
-    "Prior Year Revenue (TTM)"
-]
+# Actual df columns
+actual_columns = df.columns.tolist()
 
-# Verify which features are in the dataframe
-missing_features = [f for f in features if f not in df.columns]
+# Map expected feature names to actual column names in df
+column_mapping = {}
+missing_features = []
+
+for feat in expected_features:
+    if feat in actual_columns:
+        column_mapping[feat] = feat
+    elif feat.replace("_legal", "_x") in actual_columns:
+        column_mapping[feat] = feat.replace("_legal", "_x")
+    else:
+        missing_features.append(feat)
+
+# Warn if features are missing
 if missing_features:
     st.warning(f"⚠️ These features are missing from the dataset and will be skipped: {missing_features}")
-features = [f for f in features if f in df.columns]
 
-# Create a readable label mapping (e.g., FederalJudge_legal -> FederalJudge)
-label_map = {f: f.replace("_legal", "") for f in features}
+# Filter only available features
+available_features = [f for f in expected_features if f not in missing_features]
 
-# Identify categorical features
-categorical_features = df[features].select_dtypes(include=["object", "bool"]).columns.tolist()
-
+# UI for user input
 user_input = {}
 cols = st.columns(2)
-
-for i, feature in enumerate(features):
+for i, feature in enumerate(available_features):
+    df_col = column_mapping[feature]
     col = cols[i % 2]
-    label = label_map[feature]
-    if feature in categorical_features:
-        options = sorted(df[feature].dropna().unique())
-        selection = col.selectbox(f"{label}", ["Select..."] + list(options))
+    if df[df_col].dtype == "object" or df[df_col].dtype == "bool":
+        options = sorted(df[df_col].dropna().unique())
+        selection = col.selectbox(f"{feature}", ["Select..."] + list(options))
         user_input[feature] = selection if selection != "Select..." else None
     else:
-        min_val = float(df[feature].min())
-        max_val = float(df[feature].max())
-        default_val = float(df[feature].median())
-        val = col.slider(f"{label}", min_val, max_val, default_val)
+        min_val = float(df[df_col].min())
+        max_val = float(df[df_col].max())
+        default_val = float(df[df_col].median())
+        val = col.slider(f"{feature}", min_val, max_val, default_val)
         user_input[feature] = val
 
-# Build the input DataFrame
-input_df = pd.DataFrame([user_input])
-
+# Only make prediction if all required inputs are present
 if all(v is not None for v in user_input.values()):
+    input_df = pd.DataFrame([user_input])
     probs = model.predict_proba(input_df)[0]
-    st.subheader("Predicted Case Outcome Probabilities:")
-    for label, prob in zip(model.classes_, probs):
-        st.write(f"- {label}: {prob:.2%}")
+    pred_class = model.classes_[probs.argmax()]
+    st.success(f"✅ **Predicted Outcome:** {pred_class}")
+    st.write(f"🔍 Class Probabilities: {dict(zip(model.classes_, probs.round(3)))}")
 else:
-    st.info("Please complete all fields to generate a prediction.")
+    st.info("Please fill out all fields above to get a prediction.")
