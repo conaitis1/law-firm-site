@@ -409,7 +409,9 @@ missing_from_df = [f for f in features if f not in df.columns]
 if missing_from_df:
     st.warning(f"⚠️ These features are missing from the dataset and will be skipped: {missing_from_df}")
 
-categorical_features = df[features].select_dtypes(include=["object", "bool"]).columns.tolist()
+available_features = [f for f in features if f in df.columns]
+categorical_features = df[available_features].select_dtypes(include=["object", "bool"]).columns.tolist()
+
 cols = st.columns(2)
 
 for i, feature in enumerate(features):
