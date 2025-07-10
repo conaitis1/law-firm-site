@@ -397,70 +397,57 @@ import joblib
 import numpy as np
 import matplotlib.pyplot as plt
 # Predictive Model Section
-st.header("📈 Predict Case Outcome Based on Inputs")
-st.markdown("Use the filters below to simulate a new case and predict its likely outcome.")
+st.markdown("### 📈 Predict Case Outcome Based on Inputs")
+st.write("Use the filters below to simulate a new case and predict its likely outcome.")
 
-model = joblib.load("rf_model.joblib")
-
-# Original expected feature names
-expected_features = list(model.feature_names_in_)
-
-# Actual df columns
-actual_columns = df.columns.tolist()
-
-# Map expected feature names to actual column names in df
-column_mapping = {}
-missing_features = []
-
-for feat in expected_features:
-    if feat in actual_columns:
-        column_mapping[feat] = feat
-    elif feat.replace("_legal", "_x") in actual_columns:
-        column_mapping[feat] = feat.replace("_legal", "_x")
-    else:
-        missing_features.append(feat)
-
-# Warn if features are missing
-if missing_features:
-    st.warning(f"⚠️ These features are missing from the dataset and will be skipped: {missing_features}")
-
-# Filter only available features
-available_features = [f for f in expected_features if f not in missing_features]
-
-# UI for user input
 user_input = {}
+features = list(model.feature_names_in_)
+
+# Warn if any model features are missing from the dataset
+missing_from_df = [f for f in features if f not in df.columns]
+if missing_from_df:
+    st.warning(f"⚠️ These features are missing from the dataset and will be skipped: {missing_from_df}")
+
+categorical_features = df[features].select_dtypes(include=["object", "bool"]).columns.tolist()
 cols = st.columns(2)
-for i, feature in enumerate(available_features):
-    df_col = column_mapping[feature]
+
+for i, feature in enumerate(features):
+    if feature not in df.columns:
+        continue
+
     col = cols[i % 2]
-    if df[df_col].dtype == "object" or df[df_col].dtype == "bool":
-        options = sorted(df[df_col].dropna().unique())
+    if feature in categorical_features:
+        options = sorted(df[feature].dropna().unique())
         selection = col.selectbox(f"{feature}", ["Select..."] + list(options))
         user_input[feature] = selection if selection != "Select..." else None
     else:
-        min_val = float(df[df_col].min())
-        max_val = float(df[df_col].max())
-        default_val = float(df[df_col].median())
+        min_val = float(df[feature].min())
+        max_val = float(df[feature].max())
+        default_val = float(df[feature].median())
         val = col.slider(f"{feature}", min_val, max_val, default_val)
         user_input[feature] = val
 
-# Only make prediction if all required inputs are present
-# 🧠 Run prediction if all inputs provided
-if all(v is not None for v in user_input.values()):
-    input_df = pd.DataFrame([user_input])
+# Ensure all expected model inputs are present
+input_data = {feature: user_input.get(feature, None) for feature in model.feature_names_in_}
+input_df = pd.DataFrame([input_data])
 
-    # Rename columns to match the model's expected features
-    input_df.columns = available_features
-
-    # Ensure all columns are in the correct order
-    input_df = input_df[[col for col in model.feature_names_in_ if col in input_df.columns]]
-
-
-    # Predict probabilities
+try:
     probs = model.predict_proba(input_df)[0]
-    pred_class = model.classes_[probs.argmax()]
+    class_names = model.classes_
+    outcome_probabilities = {class_names[i]: probs[i] for i in range(len(class_names))}
 
-    st.success(f"✅ **Predicted Outcome:** {pred_class}")
-    st.write(f"🔍 Class Probabilities: {dict(zip(model.classes_, probs.round(3)))}")
-else:
-    st.info("Please fill out all fields above to get a prediction.")
+    st.markdown("#### 🎯 Predicted Outcome")
+    pred_col1, pred_col2 = st.columns([1, 1])
+    with pred_col1:
+        st.write("##### Probabilities:")
+        for label, prob in outcome_probabilities.items():
+            st.write(f"- **{label}**: {prob:.1%}")
+
+    with pred_col2:
+        fig, ax = plt.subplots()
+        ax.pie(probs, labels=class_names, autopct="%1.1f%%", startangle=90)
+        ax.axis("equal")
+        st.pyplot(fig)
+
+except Exception as e:
+    st.error(f"❌ Prediction failed: {e}")
