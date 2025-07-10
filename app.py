@@ -396,42 +396,23 @@ if not filtered_df.empty:
 import joblib
 import numpy as np
 import matplotlib.pyplot as plt
+@st.cache_resource
+def load_model():
+    return joblib.load("rf_model.joblib")  # adjust the filename if different
 
+model = load_model()
 # ===========================
 # 🚀 Predict Case Outcome
 # ===========================
 
-st.subheader("📈 Predict Case Outcome Based on Inputs")
-st.markdown("Use the filters below to simulate a new case and predict its likely outcome.")
+st.markdown("## 📈 Predict Case Outcome Based on Inputs")
+st.write("Use the filters below to simulate a new case and predict its likely outcome.")
 
-# Load model
-model = joblib.load("rf_model.joblib")
-
-# Load data for encoding and dropdowns
-xls_path = "THE BIG ANSWER SEPT.23.xlsx"
-legal_df = pd.read_excel(xls_path, sheet_name="LEGAL")
-financial_df = pd.read_excel(xls_path, sheet_name="FINANCIAL")
-df = pd.merge(legal_df, financial_df, on="CaseID", how="inner")
-df.rename(columns={
-    "FederalJudge_x": "FederalJudge_legal",
-    "FederalCourt_x": "FederalCourt_legal",
-    "SICCode_x": "SICCode_legal",
-    "CaseStatus_x": "CaseStatus"
-}, inplace=True)
-
-df.columns = df.columns.str.strip()
-
-# Confirm which CaseStatus column to keep (you can switch this if needed)
-status_col = "CaseStatus_x" if "CaseStatus_x" in df.columns else "CaseStatus"
-if "CaseStatus" in df.columns:
-    df = df[df["CaseStatus"] != "Active"]
-else:
-    st.error("❌ 'CaseStatus' column not found in merged dataframe.")
-
+# Raw features used by the model
 features = [
-    "FederalJudge",
-    "FederalCourt",
-    "SICCode",
+    "FederalJudge_legal",
+    "FederalCourt_legal",
+    "SICCode_legal",
     "Current Ratio",
     "Filing Date Market Cap",
     "Insider Ownership",
@@ -439,71 +420,42 @@ features = [
     "Prior Year Revenue (TTM)"
 ]
 
-# Remove any features that aren't present in df
-available_features = [col for col in features if col in df.columns]
-
-missing_features = [col for col in features if col not in df.columns]
-
+# Verify which features are in the dataframe
+missing_features = [f for f in features if f not in df.columns]
 if missing_features:
     st.warning(f"⚠️ These features are missing from the dataset and will be skipped: {missing_features}")
+features = [f for f in features if f in df.columns]
 
-# Only use available columns
-categorical_features = df[available_features].select_dtypes(include=["object", "bool"]).columns.tolist()
+# Create a readable label mapping (e.g., FederalJudge_legal -> FederalJudge)
+label_map = {f: f.replace("_legal", "") for f in features}
 
-numerical_features = [f for f in features if f not in categorical_features]
+# Identify categorical features
+categorical_features = df[features].select_dtypes(include=["object", "bool"]).columns.tolist()
 
-# User input section
-cols = st.columns(2)
 user_input = {}
+cols = st.columns(2)
 
 for i, feature in enumerate(features):
-    if feature not in df.columns:
-        st.warning(f"Feature '{feature}' not found in dataframe.")
-        continue
-
     col = cols[i % 2]
+    label = label_map[feature]
     if feature in categorical_features:
-        if feature not in df.columns or df[feature].dropna().empty:
-            st.warning(f"⚠️ Skipping {feature} — no data available.")
-            continue
         options = sorted(df[feature].dropna().unique())
-        selection = col.selectbox(f"{feature}", ["Select..."] + list(options))
+        selection = col.selectbox(f"{label}", ["Select..."] + list(options))
         user_input[feature] = selection if selection != "Select..." else None
     else:
         min_val = float(df[feature].min())
         max_val = float(df[feature].max())
         default_val = float(df[feature].median())
-        val = col.slider(f"{feature}", min_val, max_val, default_val)
+        val = col.slider(f"{label}", min_val, max_val, default_val)
         user_input[feature] = val
 
+# Build the input DataFrame
+input_df = pd.DataFrame([user_input])
 
-# Predict
-input_df = pd.DataFrame([user_input]).dropna(axis=1)
-merged_df = pd.concat([df[features], input_df], ignore_index=True)
-encoded = pd.get_dummies(merged_df)
-encoded = encoded.reindex(columns=model.feature_names_in_, fill_value=0)
-input_encoded = encoded.tail(1)
-
-# Show pie chart
-if input_encoded.shape[1] == len(model.feature_names_in_):
-    probs = model.predict_proba(input_encoded)[0]
-    labels = model.classes_
-
-    st.markdown("### 🎯 Predicted Outcome Distribution")
-    col1, col2 = st.columns([1, 1])
-
-    with col1:
-        fig, ax = plt.subplots(figsize=(4, 4), dpi=150)
-        ax.pie(
-            probs,
-            labels=labels,
-            autopct="%1.1f%%",
-            startangle=90,
-            textprops={"fontsize": 8},
-            colors=plt.cm.Pastel1(np.linspace(0, 1, len(labels)))
-        )
-        ax.set_title("Prediction", fontsize=10)
-        st.pyplot(fig)
-
+if all(v is not None for v in user_input.values()):
+    probs = model.predict_proba(input_df)[0]
+    st.subheader("Predicted Case Outcome Probabilities:")
+    for label, prob in zip(model.classes_, probs):
+        st.write(f"- {label}: {prob:.2%}")
 else:
-    st.warning("Please select more input fields to enable prediction.")
+    st.info("Please complete all fields to generate a prediction.")
