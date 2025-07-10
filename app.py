@@ -432,8 +432,6 @@ features = [
     "FederalJudge",
     "FederalCourt",
     "SICCode",
-    "CashAmount",
-    "TotalAmount",
     "Current Ratio",
     "Filing Date Market Cap",
     "Insider Ownership",
@@ -458,6 +456,10 @@ cols = st.columns(2)
 user_input = {}
 
 for i, feature in enumerate(features):
+    if feature not in df.columns:
+        st.warning(f"Feature '{feature}' not found in dataframe.")
+        continue
+
     col = cols[i % 2]
     if feature in categorical_features:
         options = sorted(df[feature].dropna().unique())
@@ -469,6 +471,7 @@ for i, feature in enumerate(features):
         default_val = float(df[feature].median())
         val = col.slider(f"{feature}", min_val, max_val, default_val)
         user_input[feature] = val
+
 
 # Predict
 input_df = pd.DataFrame([user_input]).dropna(axis=1)
