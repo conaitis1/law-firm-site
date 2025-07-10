@@ -396,6 +396,7 @@ if not filtered_df.empty:
 import joblib
 import numpy as np
 import matplotlib.pyplot as plt
+model = joblib.load("rf_model.joblib")
 # Predictive Model Section
 st.markdown("### 📈 Predict Case Outcome Based on Inputs")
 st.write("Use the filters below to simulate a new case and predict its likely outcome.")
