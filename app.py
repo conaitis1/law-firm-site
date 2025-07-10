@@ -412,12 +412,17 @@ xls_path = "THE BIG ANSWER SEPT.23.xlsx"
 legal_df = pd.read_excel(xls_path, sheet_name="LEGAL")
 financial_df = pd.read_excel(xls_path, sheet_name="FINANCIAL")
 df = pd.merge(legal_df, financial_df, on="CaseID", how="inner")
+df.rename(columns={
+    "FederalJudge_x": "FederalJudge_legal",
+    "FederalCourt_x": "FederalCourt_legal",
+    "SICCode_x": "SICCode_legal"
+}, inplace=True)
+
 df.columns = df.columns.str.strip()
 
 # Confirm which CaseStatus column to keep (you can switch this if needed)
 status_col = "CaseStatus_x" if "CaseStatus_x" in df.columns else "CaseStatus"
 df = df[df[status_col] != "Active"]
-
 features = list(model.feature_names_in_)
 categorical_features = df[features].select_dtypes(include=["object", "bool"]).columns.tolist()
 numerical_features = [f for f in features if f not in categorical_features]
