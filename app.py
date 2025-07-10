@@ -440,7 +440,7 @@ features = [
 ]
 
 # Remove any features that aren't present in df
-features = [col for col in features if col in df.columns]
+available_features = [col for col in features if col in df.columns]
 
 missing_features = [col for col in features if col not in df.columns]
 
