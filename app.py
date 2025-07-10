@@ -453,7 +453,8 @@ if all(v is not None for v in user_input.values()):
     input_df.columns = available_features
 
     # Ensure all columns are in the correct order
-    input_df = input_df[model.feature_names_in_]
+    input_df = input_df[[col for col in model.feature_names_in_ if col in input_df.columns]]
+
 
     # Predict probabilities
     probs = model.predict_proba(input_df)[0]
