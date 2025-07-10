@@ -428,7 +428,19 @@ if "CaseStatus" in df.columns:
 else:
     st.error("❌ 'CaseStatus' column not found in merged dataframe.")
 
-features = list(model.feature_names_in_)
+features = [
+    "FederalJudge",
+    "FederalCourt",
+    "SICCode",
+    "CashAmount",
+    "TotalAmount",
+    "Current Ratio",
+    "Filing Date Market Cap",
+    "Insider Ownership",
+    "Institutional Ownership",
+    "Prior Year Revenue (TTM)"
+]
+
 # Remove any features that aren't present in df
 available_features = [col for col in features if col in df.columns]
 missing_features = [col for col in features if col not in df.columns]
