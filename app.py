@@ -463,6 +463,9 @@ for i, feature in enumerate(features):
 
     col = cols[i % 2]
     if feature in categorical_features:
+        if feature not in df.columns or df[feature].dropna().empty:
+            st.warning(f"⚠️ Skipping {feature} — no data available.")
+            continue
         options = sorted(df[feature].dropna().unique())
         selection = col.selectbox(f"{feature}", ["Select..."] + list(options))
         user_input[feature] = selection if selection != "Select..." else None
