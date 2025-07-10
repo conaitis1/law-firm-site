@@ -429,7 +429,16 @@ else:
     st.error("❌ 'CaseStatus' column not found in merged dataframe.")
 
 features = list(model.feature_names_in_)
-categorical_features = df[features].select_dtypes(include=["object", "bool"]).columns.tolist()
+# Remove any features that aren't present in df
+available_features = [col for col in features if col in df.columns]
+missing_features = [col for col in features if col not in df.columns]
+
+if missing_features:
+    st.warning(f"⚠️ These features are missing from the dataset and will be skipped: {missing_features}")
+
+# Only use available columns
+categorical_features = df[available_features].select_dtypes(include=["object", "bool"]).columns.tolist()
+
 numerical_features = [f for f in features if f not in categorical_features]
 
 # User input section
