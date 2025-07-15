@@ -430,19 +430,33 @@ for i, feature in enumerate(features):
         user_input[feature] = val
 
 # Create input dataframe and predict
+# Create input dataframe
 input_df = pd.DataFrame([user_input])
 
-# Only keep features the model expects *and* that exist in user_input
-input_df = input_df[[f for f in model.feature_names_in_ if f in input_df.columns]]
+# Match training format: one-hot encode categorical features
+input_df = pd.get_dummies(input_df)
 
+# Add any missing columns that the model was trained on (fill with 0s)
+for col in model.feature_names_in_:
+    if col not in input_df.columns:
+        input_df[col] = 0
+
+# Reorder columns to match model
+input_df = input_df[model.feature_names_in_]
+
+# Check for missing input
 if input_df.isnull().any().any():
     st.warning("Please fill out all required fields to get a prediction.")
 else:
     probs = model.predict_proba(input_df)[0]
     labels = model.classes_
+
+    # Format output
     prob_dict = dict(zip(labels, probs))
-    top_prediction = max(prob_dict, key=prob_dict.get)
-    
-    st.markdown(f"### 🧠 Predicted Outcome: **{top_prediction}**")
-    st.markdown("#### 🔍 Probabilities:")
+    top_prediction = labels[np.argmax(probs)]
+
+    st.subheader("🔮 Predicted Outcome")
+    st.write(f"**Most Likely Outcome:** {top_prediction}")
+    st.write("**Prediction Confidence:**")
     st.write({k: f"{v:.2%}" for k, v in prob_dict.items()})
+
