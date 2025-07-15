@@ -431,25 +431,32 @@ with st.form("prediction_form"):
         if feature in df_model.columns:
             col = col1 if i % 2 == 0 else col2
 
-            if df_model[feature].dtype == "object":
-                options = sorted(df_model[feature].dropna().unique())
+            dtype = df_model[feature].dtype
+
+            if dtype == "object":
+                options = df_model[feature].dropna().unique().tolist()
+                options = sorted([str(opt) for opt in options if str(opt).strip() != ""])
                 if options:
                     val = col.selectbox(f"{feature}", options)
                 else:
                     val = col.text_input(f"{feature} (no options available)")
 
-            elif df_model[feature].dtype == "bool":
+            elif dtype == "bool":
                 val = col.checkbox(f"{feature}")
 
             else:
-                min_val = float(df_model[feature].min())
-                max_val = float(df_model[feature].max())
-                default_val = float(df_model[feature].median())
-                val = col.slider(f"{feature}", min_val, max_val, default_val)
+                try:
+                    min_val = float(df_model[feature].min())
+                    max_val = float(df_model[feature].max())
+                    default_val = float(df_model[feature].median())
+                    val = col.slider(f"{feature}", min_val, max_val, default_val)
+                except:
+                    val = col.text_input(f"{feature} (enter numeric value)")
 
             user_input[feature] = val
 
     submitted = st.form_submit_button("Predict")
+
 
 # Only run prediction if form is submitted
 if submitted:
