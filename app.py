@@ -396,32 +396,31 @@ if not filtered_df.empty:
 import joblib
 import numpy as np
 import matplotlib.pyplot as plt
-model = joblib.load("rf_model.joblib")
-# Predictive Model Section
-st.markdown("### 📈 Predict Case Outcome Based on Inputs")
-st.write("Use the filters below to simulate a new case and predict its likely outcome.")
+# ⬇️ Predict Case Outcome Based on Inputs
+st.markdown("## 📈 Predict Case Outcome Based on Inputs")
+st.markdown("Use the filters below to simulate a new case and predict its likely outcome.")
 
-user_input = {}
+# Load model
+model = joblib.load("rf_model.joblib")
 features = list(model.feature_names_in_)
 
-# Warn if any model features are missing from the dataset
-missing_from_df = [f for f in features if f not in df.columns]
-if missing_from_df:
-    st.warning(f"⚠️ These features are missing from the dataset and will be skipped: {missing_from_df}")
+# Drop any missing columns from dataset
+missing_features = [f for f in features if f not in df.columns]
+if missing_features:
+    st.warning(f"⚠️ These features are missing from the dataset and will be skipped: {missing_features}")
+features = [f for f in features if f in df.columns]
 
-available_features = [f for f in features if f in df.columns]
-categorical_features = df[available_features].select_dtypes(include=["object", "bool"]).columns.tolist()
+# Detect categorical features
+categorical_features = df[features].select_dtypes(include=["object", "bool"]).columns.tolist()
 
+# Create form layout for inputs
+user_input = {}
 cols = st.columns(2)
-
 for i, feature in enumerate(features):
-    if feature not in df.columns:
-        continue
-
     col = cols[i % 2]
     if feature in categorical_features:
         options = sorted(df[feature].dropna().unique())
-        selection = col.selectbox(f"{feature}", ["Select..."] + list(options))
+        selection = col.selectbox(f"{feature}", ["Select..."] + options, index=0)
         user_input[feature] = selection if selection != "Select..." else None
     else:
         min_val = float(df[feature].min())
@@ -430,27 +429,18 @@ for i, feature in enumerate(features):
         val = col.slider(f"{feature}", min_val, max_val, default_val)
         user_input[feature] = val
 
-# Ensure all expected model inputs are present
-input_data = {feature: user_input.get(feature, None) for feature in model.feature_names_in_}
-input_df = pd.DataFrame([input_data])
+# Create input dataframe and predict
+input_df = pd.DataFrame([user_input])
+input_df = input_df[model.feature_names_in_]  # ensure correct column order
 
-try:
+if input_df.isnull().any().any():
+    st.warning("Please fill out all required fields to get a prediction.")
+else:
     probs = model.predict_proba(input_df)[0]
-    class_names = model.classes_
-    outcome_probabilities = {class_names[i]: probs[i] for i in range(len(class_names))}
-
-    st.markdown("#### 🎯 Predicted Outcome")
-    pred_col1, pred_col2 = st.columns([1, 1])
-    with pred_col1:
-        st.write("##### Probabilities:")
-        for label, prob in outcome_probabilities.items():
-            st.write(f"- **{label}**: {prob:.1%}")
-
-    with pred_col2:
-        fig, ax = plt.subplots()
-        ax.pie(probs, labels=class_names, autopct="%1.1f%%", startangle=90)
-        ax.axis("equal")
-        st.pyplot(fig)
-
-except Exception as e:
-    st.error(f"❌ Prediction failed: {e}")
+    labels = model.classes_
+    prob_dict = dict(zip(labels, probs))
+    top_prediction = max(prob_dict, key=prob_dict.get)
+    
+    st.markdown(f"### 🧠 Predicted Outcome: **{top_prediction}**")
+    st.markdown("#### 🔍 Probabilities:")
+    st.write({k: f"{v:.2%}" for k, v in prob_dict.items()})

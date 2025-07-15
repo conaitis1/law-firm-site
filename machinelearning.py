@@ -23,8 +23,6 @@ features = [
     "FederalJudge_legal",
     "FederalCourt_legal",
     "SICCode_legal",
-    "CashAmount",
-    "TotalAmount",
     "Current Ratio",
     "ViolationType_legal",
     "Tag_Insider",
