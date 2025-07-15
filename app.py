@@ -431,7 +431,12 @@ with st.form("prediction_form"):
         if feature in df_model.columns:
             col = col1 if i % 2 == 0 else col2
             if df_model[feature].dtype == "object":
-                val = col.selectbox(f"{feature}", sorted(df_model[feature].dropna().unique()))
+                options = sorted(df_model[feature].dropna().unique())
+                if options:
+                    val = col.selectbox(f"{feature}", options)
+                else:
+                    val = col.text_input(f"{feature} (no options available)")
+
             elif df_model[feature].dtype == "bool":
                 val = col.checkbox(f"{feature}")
             else:
