@@ -410,6 +410,13 @@ df_fin = pd.read_excel(file_path, sheet_name=1)
 
 df = pd.merge(df_legal, df_fin, on="CaseID", how="left")
 df_model = df.drop(columns=["CaseID", "SettlementAmount", "TargetStatus"], errors="ignore")
+# Ensure all numeric columns are treated as numbers
+for col in df_model.columns:
+    if df_model[col].dtype == "object":
+        try:
+            df_model[col] = pd.to_numeric(df_model[col])
+        except:
+            pass  # leave as object if conversion fails
 
 # Drop any missing columns from dataset
 missing_features = [f for f in features if f not in df.columns]
