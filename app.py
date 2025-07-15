@@ -431,7 +431,9 @@ for i, feature in enumerate(features):
 
 # Create input dataframe and predict
 input_df = pd.DataFrame([user_input])
-input_df = input_df[model.feature_names_in_]  # ensure correct column order
+
+# Only keep features the model expects *and* that exist in user_input
+input_df = input_df[[f for f in model.feature_names_in_ if f in input_df.columns]]
 
 if input_df.isnull().any().any():
     st.warning("Please fill out all required fields to get a prediction.")
