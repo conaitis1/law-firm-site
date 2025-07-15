@@ -428,8 +428,7 @@ with st.form("prediction_form"):
     user_input = {}
 
     for i, feature in enumerate(model.feature_names_in_):
-    # Handle dummy variables: detect the original base column name
-        base_col = None
+    # Get the original column name (before one-hot encoding)
         if "_legal_" in feature:
             base_col = feature.split("_legal_")[0]
         elif "_legal" in feature:
@@ -437,20 +436,26 @@ with st.form("prediction_form"):
         else:
             base_col = feature
 
-        if base_col in df_model.columns:
-            col = col1 if i % 2 == 0 else col2
-            if df_model[base_col].dtype == "object":
-                options = sorted(df_model[base_col].dropna().unique())
-                val = col.selectbox(f"{base_col}", options)
-            elif df_model[base_col].dtype == "bool":
-                val = col.checkbox(f"{base_col}")
-            else:
-                min_val = float(df_model[base_col].min())
-                max_val = float(df_model[base_col].max())
-                default_val = float(df_model[base_col].median())
-                val = col.slider(f"{base_col}", min_val, max_val, default_val)
-        
-            user_input[base_col] = val
+    # Only proceed if the original column exists
+        if base_col not in df_model.columns:
+            continue
+
+        col = col1 if i % 2 == 0 else col2
+        dtype = df_model[base_col].dtype
+
+        if dtype == "object":
+            options = sorted(df_model[base_col].dropna().unique())
+            val = col.selectbox(f"{base_col}", options)
+        elif dtype == "bool":
+            val = col.checkbox(f"{base_col}")
+        else:
+            min_val = float(df_model[base_col].min())
+            max_val = float(df_model[base_col].max())
+            default_val = float(df_model[base_col].median())
+            val = col.slider(f"{base_col}", min_val, max_val, default_val)
+
+        user_input[base_col] = val
+
 
 
     submitted = st.form_submit_button("Predict")
