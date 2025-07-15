@@ -431,23 +431,28 @@ for i, feature in enumerate(features):
 
 # Create input dataframe and predict
 # Create input dataframe
+# Create input DataFrame
 input_df = pd.DataFrame([user_input])
 
-# Match training format: one-hot encode categorical features
-input_df = pd.get_dummies(input_df)
+# Drop entirely missing columns
+input_df = input_df.dropna(axis=1, how='all')
 
-# Add any missing columns that the model was trained on (fill with 0s)
-for col in model.feature_names_in_:
-    if col not in input_df.columns:
-        input_df[col] = 0
-
-# Reorder columns to match model
-input_df = input_df[model.feature_names_in_]
-
-# Check for missing input
-if input_df.isnull().any().any():
+# If any fields were left blank, warn the user
+if input_df.shape[1] < len(model.feature_names_in_):
     st.warning("Please fill out all required fields to get a prediction.")
 else:
+    # One-hot encode categorical variables
+    input_df = pd.get_dummies(input_df)
+
+    # Add missing columns from training and fill with 0
+    for col in model.feature_names_in_:
+        if col not in input_df.columns:
+            input_df[col] = 0
+
+    # Reorder columns
+    input_df = input_df[model.feature_names_in_]
+
+    # Run prediction
     probs = model.predict_proba(input_df)[0]
     labels = model.classes_
 
@@ -459,4 +464,5 @@ else:
     st.write(f"**Most Likely Outcome:** {top_prediction}")
     st.write("**Prediction Confidence:**")
     st.write({k: f"{v:.2%}" for k, v in prob_dict.items()})
+
 
