@@ -428,7 +428,9 @@ with st.form("prediction_form"):
     user_input = {}
 
     for i, feature in enumerate(model.feature_names_in_):
-        if feature in df_model.columns:
+        base_feature = feature.split("_legal")[0] if "_legal" in feature else feature
+        if base_feature in df_model.columns:
+
             col = col1 if i % 2 == 0 else col2
 
             dtype = df_model[feature].dtype
