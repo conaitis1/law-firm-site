@@ -466,24 +466,24 @@ if submitted:
     # Drop entirely missing columns
     input_df = input_df.dropna(axis=1, how='all')
 
-    if input_df.shape[1] < len(model.feature_names_in_):
-        st.warning("Please fill out all required fields to get a prediction.")
-    else:
-        input_df = pd.get_dummies(input_df)
+    input_df = pd.get_dummies(input_df)
 
-        for col in model.feature_names_in_:
-            if col not in input_df.columns:
-                input_df[col] = 0
+# Add any missing columns that the model expects
+    for col in model.feature_names_in_:
+        if col not in input_df.columns:
+            input_df[col] = 0  # Default/fallback value
 
-        input_df = input_df[model.feature_names_in_]
+# Reorder columns to match model
+    input_df = input_df[model.feature_names_in_]
 
-        probs = model.predict_proba(input_df)[0]
-        labels = model.classes_
 
-        prob_dict = dict(zip(labels, probs))
-        top_prediction = labels[np.argmax(probs)]
+    probs = model.predict_proba(input_df)[0]
+    labels = model.classes_
 
-        st.subheader("🔮 Predicted Outcome")
-        st.write(f"**Most Likely Outcome:** {top_prediction}")
-        st.write("**Prediction Confidence:**")
-        st.write({k: f"{v:.2%}" for k, v in prob_dict.items()})
+    prob_dict = dict(zip(labels, probs))
+    top_prediction = labels[np.argmax(probs)]
+
+    st.subheader("🔮 Predicted Outcome")
+    st.write(f"**Most Likely Outcome:** {top_prediction}")
+    st.write("**Prediction Confidence:**")
+    st.write({k: f"{v:.2%}" for k, v in prob_dict.items()})
