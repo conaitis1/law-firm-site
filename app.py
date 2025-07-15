@@ -415,20 +415,22 @@ categorical_features = df[features].select_dtypes(include=["object", "bool"]).co
 
 # Create form layout for inputs
 user_input = {}
-cols = st.columns(2)
-for i, feature in enumerate(features):
-    col = cols[i % 2]
-    if feature in categorical_features:
-        options = sorted(df[feature].dropna().unique())
-        selection = col.selectbox(f"{feature}", ["Select..."] + options, index=0)
-        user_input[feature] = selection if selection != "Select..." else None
-    else:
-        min_val = float(df[feature].min())
-        max_val = float(df[feature].max())
-        default_val = float(df[feature].median())
-        val = col.slider(f"{feature}", min_val, max_val, default_val)
-        user_input[feature] = val
 
+# Loop through features expected by the model
+for feature in model.feature_names_in_:
+    if feature in df.columns:
+        if df[feature].dtype == "object":
+            val = col.selectbox(f"{feature}", sorted(df[feature].dropna().unique()))
+            user_input[feature] = val
+        elif df[feature].dtype == "bool":
+            val = col.checkbox(f"{feature}")
+            user_input[feature] = val
+        else:
+            min_val = float(df[feature].min())
+            max_val = float(df[feature].max())
+            default_val = float(df[feature].median())
+            val = col.slider(f"{feature}", min_val, max_val, default_val)
+            user_input[feature] = val
 # Create input dataframe and predict
 # Create input dataframe
 # Create input DataFrame
