@@ -403,6 +403,13 @@ st.markdown("Use the filters below to simulate a new case and predict its likely
 # Load model
 model = joblib.load("rf_model.joblib")
 features = list(model.feature_names_in_)
+# Load the Excel file and prepare df_model just like in machinelearning.py
+file_path = "THE BIG ANSWER SEPT.23.xlsx"
+df_legal = pd.read_excel(file_path, sheet_name=0)
+df_fin = pd.read_excel(file_path, sheet_name=1)
+
+df = pd.merge(df_legal, df_fin, on="CaseID", how="left")
+df_model = df.drop(columns=["CaseID", "SettlementAmount", "TargetStatus"], errors="ignore")
 
 # Drop any missing columns from dataset
 missing_features = [f for f in features if f not in df.columns]
@@ -417,24 +424,26 @@ categorical_features = df[features].select_dtypes(include=["object", "bool"]).co
 user_input = {}
 
 # Loop through features expected by the model
+user_input = {}
+
 for feature in model.feature_names_in_:
-    if feature in df.columns:
-        if df[feature].dtype == "object":
-            val = col.selectbox(f"{feature}", sorted(df[feature].dropna().unique()))
+    if feature in df_model.columns:
+        if df_model[feature].dtype == "object":
+            val = col.selectbox(f"{feature}", sorted(df_model[feature].dropna().unique()))
             user_input[feature] = val
-        elif df[feature].dtype == "bool":
+        elif df_model[feature].dtype == "bool":
             val = col.checkbox(f"{feature}")
             user_input[feature] = val
         else:
-            min_val = float(df[feature].min())
-            max_val = float(df[feature].max())
-            default_val = float(df[feature].median())
+            min_val = float(df_model[feature].min())
+            max_val = float(df_model[feature].max())
+            default_val = float(df_model[feature].median())
             val = col.slider(f"{feature}", min_val, max_val, default_val)
             user_input[feature] = val
-# Create input dataframe and predict
-# Create input dataframe
-# Create input DataFrame
+
 input_df = pd.DataFrame([user_input])
+input_df = input_df[[f for f in model.feature_names_in_ if f in input_df.columns]]
+
 
 # Drop entirely missing columns
 input_df = input_df.dropna(axis=1, how='all')
