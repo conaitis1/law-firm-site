@@ -439,7 +439,8 @@ with st.form("prediction_form"):
 
     # Handle one-hot categorical features like FederalJudge_legal_Smith
         if "_legal" in feature and feature in df.columns:
-            base_col = feature.split("_legal")[0]
+            base_col = "_".join(feature.split("_")[:2])  # e.g., 'FederalJudge_legal'
+
             if base_col not in user_input:
                 options = sorted(df[base_col].dropna().unique())
                 val = col.selectbox(f"{base_col}", options)
