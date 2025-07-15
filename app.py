@@ -421,59 +421,56 @@ features = [f for f in features if f in df.columns]
 categorical_features = df[features].select_dtypes(include=["object", "bool"]).columns.tolist()
 
 # Create form layout for inputs
-user_input = {}
+st.markdown("### Simulate a Case Below")
 
-# Loop through features expected by the model
-user_input = {}
+with st.form("prediction_form"):
+    col1, col2 = st.columns(2)
+    user_input = {}
 
-for feature in model.feature_names_in_:
-    if feature in df_model.columns:
-        if df_model[feature].dtype == "object":
-            val = col.selectbox(f"{feature}", sorted(df_model[feature].dropna().unique()))
-            user_input[feature] = val
-        elif df_model[feature].dtype == "bool":
-            val = col.checkbox(f"{feature}")
-            user_input[feature] = val
-        else:
-            min_val = float(df_model[feature].min())
-            max_val = float(df_model[feature].max())
-            default_val = float(df_model[feature].median())
-            val = col.slider(f"{feature}", min_val, max_val, default_val)
-            user_input[feature] = val
+    for i, feature in enumerate(model.feature_names_in_):
+        if feature in df_model.columns:
+            col = col1 if i % 2 == 0 else col2
+            if df_model[feature].dtype == "object":
+                val = col.selectbox(f"{feature}", sorted(df_model[feature].dropna().unique()))
+                user_input[feature] = val
+            elif df_model[feature].dtype == "bool":
+                val = col.checkbox(f"{feature}")
+                user_input[feature] = val
+            else:
+                min_val = float(df_model[feature].min())
+                max_val = float(df_model[feature].max())
+                default_val = float(df_model[feature].median())
+                val = col.slider(f"{feature}", min_val, max_val, default_val)
+                user_input[feature] = val
 
-input_df = pd.DataFrame([user_input])
-input_df = input_df[[f for f in model.feature_names_in_ if f in input_df.columns]]
+    submitted = st.form_submit_button("Predict")
 
+# Only run prediction if form is submitted
+if submitted:
+    input_df = pd.DataFrame([user_input])
+    input_df = input_df[[f for f in model.feature_names_in_ if f in input_df.columns]]
 
-# Drop entirely missing columns
-input_df = input_df.dropna(axis=1, how='all')
+    # Drop entirely missing columns
+    input_df = input_df.dropna(axis=1, how='all')
 
-# If any fields were left blank, warn the user
-if input_df.shape[1] < len(model.feature_names_in_):
-    st.warning("Please fill out all required fields to get a prediction.")
-else:
-    # One-hot encode categorical variables
-    input_df = pd.get_dummies(input_df)
+    if input_df.shape[1] < len(model.feature_names_in_):
+        st.warning("Please fill out all required fields to get a prediction.")
+    else:
+        input_df = pd.get_dummies(input_df)
 
-    # Add missing columns from training and fill with 0
-    for col in model.feature_names_in_:
-        if col not in input_df.columns:
-            input_df[col] = 0
+        for col in model.feature_names_in_:
+            if col not in input_df.columns:
+                input_df[col] = 0
 
-    # Reorder columns
-    input_df = input_df[model.feature_names_in_]
+        input_df = input_df[model.feature_names_in_]
 
-    # Run prediction
-    probs = model.predict_proba(input_df)[0]
-    labels = model.classes_
+        probs = model.predict_proba(input_df)[0]
+        labels = model.classes_
 
-    # Format output
-    prob_dict = dict(zip(labels, probs))
-    top_prediction = labels[np.argmax(probs)]
+        prob_dict = dict(zip(labels, probs))
+        top_prediction = labels[np.argmax(probs)]
 
-    st.subheader("🔮 Predicted Outcome")
-    st.write(f"**Most Likely Outcome:** {top_prediction}")
-    st.write("**Prediction Confidence:**")
-    st.write({k: f"{v:.2%}" for k, v in prob_dict.items()})
-
-
+        st.subheader("🔮 Predicted Outcome")
+        st.write(f"**Most Likely Outcome:** {top_prediction}")
+        st.write("**Prediction Confidence:**")
+        st.write({k: f"{v:.2%}" for k, v in prob_dict.items()})
