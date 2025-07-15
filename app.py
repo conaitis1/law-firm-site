@@ -429,30 +429,31 @@ with st.form("prediction_form"):
 
     for i, feature in enumerate(model.feature_names_in_):
         # Handle one-hot encoded features like FederalJudge_legal_Smith
-        if "_legal" in feature:
-            base_col = feature.split("_legal")[0]
-        else:
-            base_col = feature
+        base_col = feature.split("_legal")[0] if "_legal" in feature else feature
 
-        # Skip if base_col doesn't exist in df_model
+        # Skip if base_col is not in df_model
         if base_col not in df_model.columns:
             continue
 
         col = col1 if i % 2 == 0 else col2
         dtype = df_model[base_col].dtype
 
-        if dtype == "object":
-            options = sorted(df_model[base_col].dropna().unique())
-            val = col.selectbox(f"{base_col}", options)
-        elif dtype == "bool":
-            val = col.checkbox(f"{base_col}")
-        else:
-            min_val = float(df_model[base_col].min())
-            max_val = float(df_model[base_col].max())
-            default_val = float(df_model[base_col].median())
-            val = col.slider(f"{base_col}", min_val, max_val, default_val)
+        try:
+            if dtype == "object":
+                options = sorted(df_model[base_col].dropna().unique())
+                val = col.selectbox(f"{base_col}", options)
+            elif dtype == "bool":
+                val = col.checkbox(f"{base_col}")
+            else:
+                min_val = float(df_model[base_col].min())
+                max_val = float(df_model[base_col].max())
+                default_val = float(df_model[base_col].median())
+                val = col.slider(f"{base_col}", min_val, max_val, default_val)
 
-        user_input[base_col] = val
+            user_input[base_col] = val
+
+        except Exception as e:
+            st.warning(f"Skipping {base_col} due to error: {e}")
 
     submitted = st.form_submit_button("Predict")
 
