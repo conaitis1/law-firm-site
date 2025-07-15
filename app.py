@@ -436,10 +436,13 @@ with st.form("prediction_form"):
 
     for i, feature in enumerate(model.feature_names_in_):
         # Handle one-hot encoded features like FederalJudge_legal_Smith
-        if "_legal" in feature and feature not in df_model.columns:
+        if feature in df_model.columns:
+            base_col = feature
+        elif "_legal" in feature:
             base_col = feature.split("_legal")[0]
         else:
             base_col = feature
+
 
         # Skip if base_col is not in df_model
         if base_col not in df_model.columns:
