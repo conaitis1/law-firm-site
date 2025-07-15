@@ -428,34 +428,30 @@ with st.form("prediction_form"):
     user_input = {}
 
     for i, feature in enumerate(model.feature_names_in_):
-        base_feature = feature.split("_legal")[0] if "_legal" in feature else feature
-        if base_feature in df_model.columns:
+    # Handle dummy variables: detect the original base column name
+        base_col = None
+        if "_legal_" in feature:
+            base_col = feature.split("_legal_")[0]
+        elif "_legal" in feature:
+            base_col = feature.split("_legal")[0]
+        else:
+            base_col = feature
 
+        if base_col in df_model.columns:
             col = col1 if i % 2 == 0 else col2
-
-            dtype = df_model[feature].dtype
-
-            if dtype == "object":
-                options = df_model[feature].dropna().unique().tolist()
-                options = sorted([str(opt) for opt in options if str(opt).strip() != ""])
-                if options:
-                    val = col.selectbox(f"{feature}", options)
-                else:
-                    val = col.text_input(f"{feature} (no options available)")
-
-            elif dtype == "bool":
-                val = col.checkbox(f"{feature}")
-
+            if df_model[base_col].dtype == "object":
+                options = sorted(df_model[base_col].dropna().unique())
+                val = col.selectbox(f"{base_col}", options)
+            elif df_model[base_col].dtype == "bool":
+                val = col.checkbox(f"{base_col}")
             else:
-                try:
-                    min_val = float(df_model[feature].min())
-                    max_val = float(df_model[feature].max())
-                    default_val = float(df_model[feature].median())
-                    val = col.slider(f"{feature}", min_val, max_val, default_val)
-                except:
-                    val = col.text_input(f"{feature} (enter numeric value)")
+                min_val = float(df_model[base_col].min())
+                max_val = float(df_model[base_col].max())
+                default_val = float(df_model[base_col].median())
+                val = col.slider(f"{base_col}", min_val, max_val, default_val)
+        
+            user_input[base_col] = val
 
-            user_input[feature] = val
 
     submitted = st.form_submit_button("Predict")
 
