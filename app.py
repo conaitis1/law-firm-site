@@ -426,28 +426,25 @@ for col in all_model_features:
 # Numerical features (everything else)
 flattened_categoricals = {f"{base}_{val}" for base, vals in base_col_to_options.items() for val in vals}
 numerical_features = [col for col in all_model_features if col not in flattened_categoricals]
-
 # === Build Form ===
 df_full = pd.merge(df_legal, df_fin, on="CaseID", how="left")  # <-- add this line
 df_full.rename(columns={
-    "FederalJudge_x": "FederalJudge_legal",
-    "FederalCourt_x": "FederalCourt_legal",
-    "SICCode_x": "SICCode_legal"
+    "FederalJudge_x": "FederalJudge",
+    "FederalCourt_x": "FederalCourt",
+    "SICCode_x": "SICCode"
 }, inplace=True)
-print("df_full columns:", df_full.columns.tolist())
-
 with st.form("prediction_form"):
     st.markdown("### Simulate a Case Below")
     user_input = {}
     col1, col2 = st.columns(2)
 
     # Manually handle categorical single columns
-    categorical_single_columns = ["FederalJudge_legal", "FederalCourt_legal", "SICCode_legal"]
+    categorical_single_columns = ["FederalJudge", "FederalCourt", "SICCode"]
     for col in categorical_single_columns:
         if col not in df_full.columns:
             st.warning(f"Column '{col}' not found in data.")
             continue
-        options = sorted(df_full[col].dropna().unique())
+        options = sorted(df_full[col].dropna().astype(str).unique())
         user_input[col] = st.selectbox(f"{col}", options)
 
     for i, feature in enumerate(numerical_features):
@@ -489,3 +486,5 @@ if submitted:
     st.write(f"**Most Likely Outcome:** {top_prediction}")
     st.write("**Prediction Confidence:**")
     st.write({k: f"{v:.2%}" for k, v in prob_dict.items()})
+print("Expected:", categorical_single_columns)
+print("Actual:", df_full.columns.tolist())
