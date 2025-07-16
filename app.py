@@ -428,13 +428,15 @@ flattened_categoricals = {f"{base}_{val}" for base, vals in base_col_to_options.
 numerical_features = [col for col in all_model_features if col not in flattened_categoricals]
 
 # === Build Form ===
+df_full = pd.merge(df_legal, df_fin, on="CaseID", how="left")  # <-- add this line
+
 with st.form("prediction_form"):
     st.markdown("### Simulate a Case Below")
     user_input = {}
     col1, col2 = st.columns(2)
+
     # Manually handle categorical single columns
     categorical_single_columns = ["FederalJudge_legal", "FederalCourt_legal", "SICCode_legal"]
-
     for col in categorical_single_columns:
         options = sorted(df_full[col].dropna().unique())
         user_input[col] = st.selectbox(f"{col}", options)
@@ -442,12 +444,13 @@ with st.form("prediction_form"):
     for i, feature in enumerate(numerical_features):
         if feature in df_full.columns:
             col = col1 if i % 2 == 0 else col2
-            cleaned_series = pd.to_numeric(df[feature], errors="coerce")
+            cleaned_series = pd.to_numeric(df_full[feature], errors="coerce")
             min_val = float(cleaned_series.min())
             max_val = float(cleaned_series.max())
             default_val = float(cleaned_series.median())
             val = col.slider(f"{feature}", min_val, max_val, default_val)
             user_input[feature] = val
+
 
     for i, (base_col, options) in enumerate(base_col_to_options.items()):
         if base_col in df.columns:
