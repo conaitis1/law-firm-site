@@ -429,9 +429,9 @@ numerical_features = [col for col in all_model_features if col not in flattened_
 # === Build Form ===
 df_full = pd.merge(df_legal, df_fin, on="CaseID", how="left")  # <-- add this line
 df_full.rename(columns={
-    "FederalJudge_x": "Federal Judge",
-    "FederalCourt_x": "Federal Court",
-    "SICCode_x": "SIC Code",
+    "FederalJudge_x": "FederalJudge",
+    "FederalCourt_x": "FederalCourt",
+    "SICCode_x": "SICCode",
 }, inplace=True)
 with st.form("prediction_form"):
     st.markdown("### Simulate a Case Below")
@@ -441,9 +441,9 @@ with st.form("prediction_form"):
     # Manually handle categorical single columns
     # Manually handle categorical single columns
     categorical_single_columns = {
-        "FederalJudge_legal": "FederalJudge",
-        "FederalCourt_legal": "FederalCourt",
-        "SICCode_legal": "SICCode"
+        "FederalJudge_legal": "Federal Judge",
+        "FederalCourt_legal": "Federal Court",
+        "SICCode_legal": "SIC Code"
     }
 
     for encoded_col, raw_col in categorical_single_columns.items():
