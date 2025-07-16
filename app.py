@@ -437,11 +437,12 @@ with st.form("prediction_form"):
         if any(feature + "_" in col for col in model.feature_names_in_) and feature not in already_handled:
             base_col = feature
             col = col1 if i % 2 == 0 else col2
-            options = sorted({
-                c.split(base_col + "_")[1]
+            options = sorted([
+                str(c.split(base_col + "_")[1])
                 for c in model.feature_names_in_
-                if c.startswith(base_col + "_")
-            })
+                if c.startswith(base_col + "_") and base_col + "_" in c
+            ])
+
             val = col.selectbox(f"{base_col}", options)
             user_input[base_col] = val
             already_handled.add(base_col)
