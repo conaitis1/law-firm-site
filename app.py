@@ -445,7 +445,9 @@ with st.form("prediction_form"):
             st.warning(f"Column '{col}' not found in data.")
             continue
         options = sorted(df_full[col].dropna().astype(str).unique())
-        user_input[col] = st.selectbox(f"{col}", options)
+        selected = st.selectbox(f"{col}", ["Select..."] + options)
+        user_input[col] = None if selected == "Select..." else selected
+
 
     for i, feature in enumerate(numerical_features):
         if feature in df_full.columns:
