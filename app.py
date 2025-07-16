@@ -433,13 +433,12 @@ df_full.rename(columns={
     "FederalCourt_x": "Federal Court",
     "SICCode_x": "SIC Code",
 }, inplace=True)
-show_numerical_filters = st.checkbox("Show Numerical Filters", value=True)
 
 with st.form("prediction_form"):
     st.markdown("### Simulate a Case Below")
     user_input = {}
     col1, col2 = st.columns(2)
-
+    show_numerical_filters = st.checkbox("Show Numerical Filters", value=True)
     # Manually handle categorical single columns
     # Manually handle categorical single columns
     categorical_single_columns = {
@@ -452,22 +451,24 @@ with st.form("prediction_form"):
         if raw_col not in df_full.columns:
             st.warning(f"Column '{raw_col}' not found in data.")
             continue
-        options = ["Select..."] + sorted(df_full[col].dropna().unique().astype(str))
-        selected = col.selectbox(f"{col}", options, index=0)
+        options = ["Select..."] + sorted(df_full[raw_col].dropna().unique().astype(str))
+        col = col1 if i % 2 == 0 else col2  # Add this line
+        selected = col.selectbox(f"{raw_col}", options, index=0)  # Use raw_col here
         if selected != "Select...":
-            user_input[col] = selected
+            user_input[encoded_col] = 1
 
 
 
-    for i, feature in enumerate(numerical_features):
-        if feature in df_full.columns:
-            col = col1 if i % 2 == 0 else col2
-            cleaned_series = pd.to_numeric(df_full[feature], errors="coerce")
-            min_val = float(cleaned_series.min())
-            max_val = float(cleaned_series.max())
-            default_val = float(cleaned_series.median())
-            val = col.slider(f"{feature}", min_val, max_val, default_val)
-            user_input[feature] = val
+    if show_numerical_filters:
+        for i, feature in enumerate(numerical_features):
+            if feature in df_full.columns:
+                col = col1 if i % 2 == 0 else col2
+                cleaned_series = pd.to_numeric(df_full[feature], errors="coerce")
+                min_val = float(cleaned_series.min())
+                max_val = float(cleaned_series.max())
+                default_val = float(cleaned_series.median())
+                val = col.slider(f"{feature}", min_val, max_val, default_val)
+                user_input[feature] = val
 
 
     # Skip any base_col that's already manually handled
