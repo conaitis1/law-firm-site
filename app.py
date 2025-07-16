@@ -431,12 +431,16 @@ numerical_features = [f for f in all_model_features if f not in sum(
 with st.form("prediction_form"):
     user_input = {}
     col1, col2 = st.columns(2)
-
+    already_handled = set()
     for i, feature in enumerate(numerical_features):
         if feature in df.columns:
             col = col1 if i % 2 == 0 else col2
-            min_val = float(df[feature].min())
-            max_val = float(df[feature].max())
+            if pd.api.types.is_numeric_dtype(df[feature]):
+                min_val = float(df[feature].min())
+                max_val = float(df[feature].max())
+                val = st.slider(f"{feature}", min_value=min_val, max_value=max_val, value=min_val)
+                user_input[feature] = val
+                already_handled.add(feature)
             default_val = float(df[feature].median())
             user_input[feature] = col.slider(f"{feature}", min_val, max_val, default_val)
 
