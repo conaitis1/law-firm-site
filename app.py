@@ -445,7 +445,9 @@ with st.form("prediction_form"):
             if base_col in user_input:
                 continue
 
-            if base_col in df.columns:
+            matching_cols = [c for c in df.columns if c.startswith(base_col + "_")]
+            if matching_cols:
+
                 try:
                     options = sorted(df[base_col].dropna().unique())
                     val = col.selectbox(f"{base_col}", options)
