@@ -432,6 +432,12 @@ with st.form("prediction_form"):
     st.markdown("### Simulate a Case Below")
     user_input = {}
     col1, col2 = st.columns(2)
+    # Manually handle categorical single columns
+    categorical_single_columns = ["FederalJudge_legal", "FederalCourt_legal", "SICCode_legal"]
+
+    for col in categorical_single_columns:
+        options = sorted(df[col].dropna().unique())
+        user_input[col] = st.selectbox(f"{col}", options)
 
     for i, feature in enumerate(numerical_features):
         if feature in df.columns:
