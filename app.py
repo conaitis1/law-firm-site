@@ -429,9 +429,9 @@ numerical_features = [col for col in all_model_features if col not in flattened_
 # === Build Form ===
 df_full = pd.merge(df_legal, df_fin, on="CaseID", how="left")  # <-- add this line
 df_full.rename(columns={
-    "FederalJudge_x": "FederalJudge",
-    "FederalCourt_x": "FederalCourt",
-    "SICCode_x": "SICCode",
+    "FederalJudge_x": "Federal Judge",
+    "FederalCourt_x": "Federal Court",
+    "SICCode_x": "SIC Code",
 }, inplace=True)
 with st.form("prediction_form"):
     st.markdown("### Simulate a Case Below")
