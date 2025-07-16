@@ -439,7 +439,7 @@ with st.form("prediction_form"):
             cleaned_series = pd.to_numeric(df[feature], errors="coerce")
             min_val = float(df[feature].min())
             max_val = float(df[feature].max())
-            default_val = float(df[feature].median())
+            default_val = float(cleaned_series.median())
             val = col.slider(f"{feature}", min_val, max_val, default_val)
             user_input[feature] = val
 
