@@ -488,5 +488,3 @@ if submitted:
     st.write(f"**Most Likely Outcome:** {top_prediction}")
     st.write("**Prediction Confidence:**")
     st.write({k: f"{v:.2%}" for k, v in prob_dict.items()})
-print("Expected:", categorical_single_columns)
-print("Actual:", df_full.columns.tolist())
