@@ -437,8 +437,8 @@ with st.form("prediction_form"):
         if feature in df.columns:
             col = col1 if i % 2 == 0 else col2
             cleaned_series = pd.to_numeric(df[feature], errors="coerce")
-            min_val = float(df[feature].min())
-            max_val = float(df[feature].max())
+            min_val = float(cleaned_series.min())
+            max_val = float(cleaned_series.max())
             default_val = float(cleaned_series.median())
             val = col.slider(f"{feature}", min_val, max_val, default_val)
             user_input[feature] = val
