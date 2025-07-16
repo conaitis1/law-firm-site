@@ -435,21 +435,20 @@ with st.form("prediction_form"):
     col1, col2 = st.columns(2)
     user_input = {}
 
+    # Track base legal inputs separately
+    legal_bases_handled = set()
+
     for i, feature in enumerate(model.feature_names_in_):
         col = col1 if i % 2 == 0 else col2
 
-        # ✅ Properly handle one-hot vs non-one-hot encoded features
-        if "_legal_" in feature:
-        # One-hot encoded (e.g., FederalJudge_legal_Smith) ➜ base = FederalJudge_legal
-            base_col = "_".join(feature.split("_")[:3])
-        elif feature.endswith("_legal"):
-    # Not one-hot (e.g., FederalJudge_legal) ➜ base = FederalJudge_legal
-            base_col = feature
-        else:
-            base_col = feature
+        # If it's a one-hot encoded legal feature
+        if "_legal_" in feature or feature.endswith("_legal"):
+            base_col = feature.split("_legal")[0] + "_legal"
+            if base_col in legal_bases_handled:
+                continue  # already added
+            legal_bases_handled.add(base_col)
 
-
-            # Get options from model columns
+            # Extract all options from model.feature_names_in_
             options = sorted(set(
                 col_name.replace(base_col + "_", "")
                 for col_name in model.feature_names_in_
@@ -458,6 +457,7 @@ with st.form("prediction_form"):
 
             val = col.selectbox(base_col, options)
             user_input[base_col] = val
+
         else:
             try:
                 dtype = df_model[feature].dtype
@@ -474,6 +474,7 @@ with st.form("prediction_form"):
                 user_input[feature] = val
             except Exception as e:
                 st.warning(f"Skipping {feature} due to error: {e}")
+
 
     submitted = st.form_submit_button("Predict")
 
