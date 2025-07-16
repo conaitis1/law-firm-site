@@ -396,104 +396,93 @@ if not filtered_df.empty:
 import joblib
 import numpy as np
 import matplotlib.pyplot as plt
-# ⬇️ Predict Case Outcome Based on Inputs
+import joblib
+import numpy as np
+import pandas as pd
+import streamlit as st
+
+# 📈 Predict Case Outcome Based on Inputs
 st.markdown("## 📈 Predict Case Outcome Based on Inputs")
 st.markdown("Use the filters below to simulate a new case and predict its likely outcome.")
 
-# Load model
+# Load model and dataset
 model = joblib.load("rf_model.joblib")
 features = list(model.feature_names_in_)
-# Load the Excel file and prepare df_model just like in machinelearning.py
+
 file_path = "THE BIG ANSWER SEPT.23.xlsx"
 df_legal = pd.read_excel(file_path, sheet_name=0)
 df_fin = pd.read_excel(file_path, sheet_name=1)
-
 df = pd.merge(df_legal, df_fin, on="CaseID", how="left")
-df_model = df.drop(columns=["CaseID", "SettlementAmount", "TargetStatus"], errors="ignore")
-# Ensure all numeric columns are treated as numbers
-for col in df_model.columns:
-    if df_model[col].dtype == "object":
-        try:
-            df_model[col] = pd.to_numeric(df_model[col])
-        except:
-            pass  # leave as object if conversion fails
 
-# Drop any missing columns from dataset
-missing_features = [f for f in features if f not in df.columns]
+# Drop unused columns
+df_model = df.drop(columns=["CaseID", "SettlementAmount", "TargetStatus"], errors="ignore")
+
+# Warn about any features missing from the merged dataset
+missing_features = [f for f in features if f not in df_model.columns and not any(col.startswith(f + "_") for col in df_model.columns)]
 if missing_features:
     st.warning(f"⚠️ These features are missing from the dataset and will be skipped: {missing_features}")
-features = [f for f in features if f in df.columns]
+features = [f for f in features if f in df_model.columns or any(col.startswith(f + "_") for col in df_model.columns)]
 
-# Detect categorical features
-categorical_features = df[features].select_dtypes(include=["object", "bool"]).columns.tolist()
+# Identify categorical features
+categorical_features = df_model.select_dtypes(include=["object", "bool"]).columns.tolist()
 
+# Create the form layout
 st.markdown("### Simulate a Case Below")
-
 with st.form("prediction_form"):
     col1, col2 = st.columns(2)
     user_input = {}
 
-    legal_bases_handled = set()
-
-    for i, feature in enumerate(model.feature_names_in_):
-        col = col1 if i % 2 == 0 else col2
-
-        # Handle one-hot encoded legal fields
-        if "_legal_" in feature or feature.endswith("_legal"):
-            base_col = feature.split("_legal")[0] + "_legal"
-            if base_col in legal_bases_handled:
-                continue  # Don't add twice
-            legal_bases_handled.add(base_col)
-
-            # Extract possible values from the model’s one-hot encoded columns
+    already_handled = set()
+    for i, feature in enumerate(features):
+        if feature.endswith("_legal") and feature not in already_handled:
+            base_col = feature
+            col = col1 if i % 2 == 0 else col2
             options = sorted({
                 f.replace(base_col + "_", "")
                 for f in model.feature_names_in_
                 if f.startswith(base_col + "_")
             })
-
             val = col.selectbox(f"{base_col}", options)
             user_input[base_col] = val
-
-        else:
-            # Use original column type from df_model if it exists
-            if feature in df_model.columns:
-                dtype = df_model[feature].dtype
-
-                if dtype == "bool":
-                    val = col.checkbox(f"{feature}")
-                elif dtype == "object":
-                    options = sorted(df_model[feature].dropna().unique())
-                    val = col.selectbox(f"{feature}", options)
-                else:
-                    min_val = float(df_model[feature].min())
-                    max_val = float(df_model[feature].max())
-                    default_val = float(df_model[feature].median())
-                    val = col.slider(f"{feature}", min_val, max_val, default_val)
-
-                user_input[feature] = val
+            already_handled.add(base_col)
+        elif feature in df_model.columns:
+            col = col1 if i % 2 == 0 else col2
+            if df_model[feature].dtype == "object":
+                options = sorted(df_model[feature].dropna().unique())
+                val = col.selectbox(f"{feature}", options)
+            elif df_model[feature].dtype == "bool":
+                val = col.checkbox(f"{feature}")
+            else:
+                min_val = float(df_model[feature].min())
+                max_val = float(df_model[feature].max())
+                default_val = float(df_model[feature].median())
+                val = col.slider(f"{feature}", min_val, max_val, default_val)
+            user_input[feature] = val
 
     submitted = st.form_submit_button("Predict")
 
+# Run prediction
 if submitted:
-    # Build DataFrame from raw user_input
-    input_df = {}
+    input_df = pd.DataFrame([user_input])
 
-    for feature in model.feature_names_in_:
-        if "_legal_" in feature:
-            base_col = feature.split("_legal")[0] + "_legal"
-            value = user_input.get(base_col)
-            input_df[feature] = 1 if value and feature.endswith("_" + value) else 0
-        elif feature in user_input:
-            input_df[feature] = user_input[feature]
-        else:
-            input_df[feature] = 0  # default for missing one-hot column
+    # One-hot encode categorical features
+    input_df = pd.get_dummies(input_df)
 
-    input_df = pd.DataFrame([input_df])
+    # Ensure all model columns are present
+    for col in model.feature_names_in_:
+        if col not in input_df.columns:
+            input_df[col] = 0
+
+    input_df = input_df[model.feature_names_in_]
+
+    # Predict
     probs = model.predict_proba(input_df)[0]
     labels = model.classes_
+    prob_dict = dict(zip(labels, probs))
+    top_prediction = labels[np.argmax(probs)]
 
+    # Display results
     st.subheader("🔮 Predicted Outcome")
-    st.write(f"**Most Likely Outcome:** {labels[np.argmax(probs)]}")
+    st.write(f"**Most Likely Outcome:** {top_prediction}")
     st.write("**Prediction Confidence:**")
-    st.write({k: f"{v:.2%}" for k, v in dict(zip(labels, probs)).items()})
+    st.write({k: f"{v:.2%}" for k, v in prob_dict.items()})
