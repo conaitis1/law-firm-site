@@ -6,7 +6,7 @@ from st_aggrid import AgGrid, GridOptionsBuilder, JsCode
 def load_model():
     return joblib.load("rf_model.joblib")
 
-st.set_page_config(page_title="Da troof", layout="wide")
+st.set_page_config(page_title="Law Firm Case Explorer", layout="wide")
 st.markdown("""
     <style>
     .stSelectbox div[role="option"]:first-child {
@@ -414,7 +414,7 @@ all_model_features = list(model.feature_names_in_)
 file_path = "THE BIG ANSWER SEPT.23.xlsx"
 df_legal = pd.read_excel(file_path, sheet_name=0)
 df_fin = pd.read_excel(file_path, sheet_name=1)
-df = pd.merge(df_legal, df_fin, on="CaseID", how="left")
+df_full = pd.merge(df_legal, df_fin, on="CaseID", how="left")
 
 # Identify base categorical columns from one-hot encoding
 base_col_to_options = {}
@@ -436,11 +436,11 @@ with st.form("prediction_form"):
     categorical_single_columns = ["FederalJudge_legal", "FederalCourt_legal", "SICCode_legal"]
 
     for col in categorical_single_columns:
-        options = sorted(df[col].dropna().unique())
+        options = sorted(df_full[col].dropna().unique())
         user_input[col] = st.selectbox(f"{col}", options)
 
     for i, feature in enumerate(numerical_features):
-        if feature in df.columns:
+        if feature in df_full.columns:
             col = col1 if i % 2 == 0 else col2
             cleaned_series = pd.to_numeric(df[feature], errors="coerce")
             min_val = float(cleaned_series.min())
