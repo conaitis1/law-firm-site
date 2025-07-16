@@ -442,6 +442,9 @@ with st.form("prediction_form"):
                 for c in model.feature_names_in_
                 if c.startswith(base_col + "_")
             ])
+            if not options:
+                st.warning(f"Skipping {base_col} due to empty options.")
+                continue
 
             val = col.selectbox(f"{base_col}", options)
             user_input[base_col] = val
