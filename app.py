@@ -431,7 +431,7 @@ df_full = pd.merge(df_legal, df_fin, on="CaseID", how="left")  # <-- add this li
 df_full.rename(columns={
     "FederalJudge_x": "Federal Judge",
     "FederalCourt_x": "Federal Court",
-    "SICCode_x": "SIC Code"
+    "SICCode_x": "SIC Code",
 }, inplace=True)
 with st.form("prediction_form"):
     st.markdown("### Simulate a Case Below")
