@@ -402,6 +402,7 @@ import pandas as pd
 import streamlit as st
 # ✅ Setup prediction section
 
+# ✅ Setup prediction section
 st.markdown("## 📈 Predict Case Outcome Based on Inputs")
 st.markdown("Use the filters below to simulate a new case and predict its likely outcome.")
 
@@ -415,48 +416,46 @@ df_legal = pd.read_excel(file_path, sheet_name=0)
 df_fin = pd.read_excel(file_path, sheet_name=1)
 df = pd.merge(df_legal, df_fin, on="CaseID", how="left")
 
-# Build mapping of base columns for one-hot-encoded categorical features
+# Identify base categorical columns from one-hot encoding
 base_col_to_options = {}
-for full_col in all_model_features:
-    if "_" in full_col:
-        base_col = full_col.rsplit("_", 1)[0]
-        option = full_col.rsplit("_", 1)[1]
-        base_col_to_options.setdefault(base_col, set()).add(option)
+for col in all_model_features:
+    if "_" in col:
+        base, val = col.rsplit("_", 1)
+        base_col_to_options.setdefault(base, set()).add(val)
 
-# Collect numerical features
-numerical_features = [f for f in all_model_features if f not in sum(
-    [[f"{base}_{val}" for val in vals] for base, vals in base_col_to_options.items()], [])]
+# Numerical features (everything else)
+flattened_categoricals = {f"{base}_{val}" for base, vals in base_col_to_options.items() for val in vals}
+numerical_features = [col for col in all_model_features if col not in flattened_categoricals]
 
-# Generate UI
+# === Build Form ===
 with st.form("prediction_form"):
+    st.markdown("### Simulate a Case Below")
     user_input = {}
     col1, col2 = st.columns(2)
-    already_handled = set()
+
     for i, feature in enumerate(numerical_features):
         if feature in df.columns:
             col = col1 if i % 2 == 0 else col2
-            if pd.api.types.is_numeric_dtype(df[feature]):
-                min_val = float(df[feature].min())
-                max_val = float(df[feature].max())
-                val = st.slider(f"{feature}", min_value=min_val, max_value=max_val, value=min_val)
-                user_input[feature] = val
-                already_handled.add(feature)
+            min_val = float(df[feature].min())
+            max_val = float(df[feature].max())
             default_val = float(df[feature].median())
-            user_input[feature] = col.slider(f"{feature}", min_val, max_val, default_val)
+            val = col.slider(f"{feature}", min_val, max_val, default_val)
+            user_input[feature] = val
 
     for i, (base_col, options) in enumerate(base_col_to_options.items()):
         if base_col in df.columns:
             col = col1 if i % 2 == 0 else col2
-            sorted_options = sorted(list(options))
-            selected = col.selectbox(f"{base_col}", sorted_options)
+            selected = col.selectbox(f"{base_col}", sorted(options))
             for opt in options:
                 user_input[f"{base_col}_{opt}"] = 1 if opt == selected else 0
 
     submitted = st.form_submit_button("Predict")
 
-# 🔮 Run prediction
+# === Run Prediction ===
 if submitted:
     input_df = pd.DataFrame([user_input])
+
+    # Ensure all model features are present
     for col in all_model_features:
         if col not in input_df.columns:
             input_df[col] = 0
