@@ -400,98 +400,69 @@ import joblib
 import numpy as np
 import pandas as pd
 import streamlit as st
+# ✅ Setup prediction section
 
-# 📈 Predict Case Outcome Based on Inputs
 st.markdown("## 📈 Predict Case Outcome Based on Inputs")
 st.markdown("Use the filters below to simulate a new case and predict its likely outcome.")
 
-# Load model and dataset
+# Load the model and get features
 model = joblib.load("rf_model.joblib")
-features = list(model.feature_names_in_)
+all_model_features = list(model.feature_names_in_)
 
+# Load and join data
 file_path = "THE BIG ANSWER SEPT.23.xlsx"
 df_legal = pd.read_excel(file_path, sheet_name=0)
 df_fin = pd.read_excel(file_path, sheet_name=1)
 df = pd.merge(df_legal, df_fin, on="CaseID", how="left")
 
-# Drop unused columns
-df_model = df.drop(columns=["CaseID", "SettlementAmount", "TargetStatus"], errors="ignore")
+# Build mapping of base columns for one-hot-encoded categorical features
+base_col_to_options = {}
+for full_col in all_model_features:
+    if "_" in full_col:
+        base_col = full_col.rsplit("_", 1)[0]
+        option = full_col.rsplit("_", 1)[1]
+        base_col_to_options.setdefault(base_col, set()).add(option)
 
-# Warn about any features missing from the merged dataset
-missing_features = [f for f in features if f not in df_model.columns and not any(col.startswith(f + "_") for col in df_model.columns)]
-if missing_features:
-    st.warning(f"⚠️ These features are missing from the dataset and will be skipped: {missing_features}")
-features = [f for f in features if f in df_model.columns or any(col.startswith(f + "_") for col in df_model.columns)]
+# Collect numerical features
+numerical_features = [f for f in all_model_features if f not in sum(
+    [[f"{base}_{val}" for val in vals] for base, vals in base_col_to_options.items()], [])]
 
-# Identify categorical features
-categorical_features = df_model.select_dtypes(include=["object", "bool"]).columns.tolist()
-
-# Create the form layout
-st.markdown("### Simulate a Case Below")
+# Generate UI
 with st.form("prediction_form"):
-    col1, col2 = st.columns(2)
     user_input = {}
+    col1, col2 = st.columns(2)
 
-    already_handled = set()
-    for i, feature in enumerate(features):
-        if any(feature + "_" in col for col in model.feature_names_in_) and feature not in already_handled:
-            base_col = feature
+    for i, feature in enumerate(numerical_features):
+        if feature in df.columns:
             col = col1 if i % 2 == 0 else col2
-            options = sorted([
-                str(c.split(base_col + "_")[1])
-                for c in model.feature_names_in_
-                if c.startswith(base_col + "_")
-            ])
-            if not options:
-                st.warning(f"Skipping {base_col} due to empty options.")
-                continue
+            min_val = float(df[feature].min())
+            max_val = float(df[feature].max())
+            default_val = float(df[feature].median())
+            user_input[feature] = col.slider(f"{feature}", min_val, max_val, default_val)
 
-            val = col.selectbox(f"{base_col}", options)
-            user_input[base_col] = val
-            already_handled.add(base_col)
-
-        elif feature in df_model.columns:
+    for i, (base_col, options) in enumerate(base_col_to_options.items()):
+        if base_col in df.columns:
             col = col1 if i % 2 == 0 else col2
-            if df_model[feature].dtype == "object":
-                options = sorted(df_model[feature].dropna().unique())
-                val = col.selectbox(f"{feature}", options)
-                user_input[feature] = val
-
-            elif df_model[feature].dtype == "bool":
-                val = col.checkbox(f"{feature}")
-                user_input[feature] = val
-
-            else:
-                min_val = float(df_model[feature].min())
-                max_val = float(df_model[feature].max())
-                default_val = float(df_model[feature].median())
-                val = col.slider(f"{feature}", min_val, max_val, default_val)
-                user_input[feature] = val
-
+            sorted_options = sorted(list(options))
+            selected = col.selectbox(f"{base_col}", sorted_options)
+            for opt in options:
+                user_input[f"{base_col}_{opt}"] = 1 if opt == selected else 0
 
     submitted = st.form_submit_button("Predict")
 
-# Run prediction
+# 🔮 Run prediction
 if submitted:
     input_df = pd.DataFrame([user_input])
-
-    # One-hot encode categorical features
-    input_df = pd.get_dummies(input_df)
-
-    # Ensure all model columns are present
-    for col in model.feature_names_in_:
+    for col in all_model_features:
         if col not in input_df.columns:
             input_df[col] = 0
+    input_df = input_df[all_model_features]
 
-    input_df = input_df[model.feature_names_in_]
-
-    # Predict
     probs = model.predict_proba(input_df)[0]
     labels = model.classes_
-    prob_dict = dict(zip(labels, probs))
     top_prediction = labels[np.argmax(probs)]
+    prob_dict = dict(zip(labels, probs))
 
-    # Display results
     st.subheader("🔮 Predicted Outcome")
     st.write(f"**Most Likely Outcome:** {top_prediction}")
     st.write("**Prediction Confidence:**")
