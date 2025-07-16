@@ -437,11 +437,11 @@ with st.form("prediction_form"):
     for i, feature in enumerate(model.feature_names_in_):
         col = col1 if i % 2 == 0 else col2
 
-        # Handle one-hot encoded features
+        # Handle one-hot encoded features like FederalJudge_legal_Smith
         if "_legal_" in feature:
             base_col = "_".join(feature.split("_")[:2])  # e.g., FederalJudge_legal
 
-            # Prevent repeated inputs for the same base column
+            # Only create UI once per base_col
             if base_col in user_input:
                 continue
 
@@ -452,27 +452,34 @@ with st.form("prediction_form"):
                     user_input[base_col] = val
                 except Exception as e:
                     st.warning(f"Skipping {base_col} due to error: {e}")
-                    continue
+            else:
+                st.warning(f"{base_col} not found in df.columns")
+            continue  # <- skip to next feature
 
-        elif feature in df.columns:
-            dtype = df[feature].dtype
-            try:
-                if dtype == "bool":
-                    val = col.checkbox(f"{feature}")
-                elif dtype == "object":
-                    options = sorted(df[feature].dropna().unique())
-                    val = col.selectbox(f"{feature}", options)
-                else:
-                    min_val = float(df[feature].min())
-                    max_val = float(df[feature].max())
-                    default_val = float(df[feature].median())
-                    val = col.slider(f"{feature}", min_val, max_val, default_val)
-                user_input[feature] = val
-            except Exception as e:
-                st.warning(f"Skipping {feature} due to error: {e}")
-                continue
+        # Handle other normal features
+        if feature not in df.columns:
+            st.warning(f"{feature} not in df.columns")
+            continue
+
+        dtype = df[feature].dtype
+        try:
+            if dtype == "bool":
+                val = col.checkbox(f"{feature}")
+            elif dtype == "object":
+                options = sorted(df[feature].dropna().unique())
+                val = col.selectbox(f"{feature}", options)
+            else:
+                min_val = float(df[feature].min())
+                max_val = float(df[feature].max())
+                default_val = float(df[feature].median())
+                val = col.slider(f"{feature}", min_val, max_val, default_val)
+            user_input[feature] = val
+        except Exception as e:
+            st.warning(f"Skipping {feature} due to error: {e}")
+            continue
 
     submitted = st.form_submit_button("Predict")
+
 
 
 # Only run prediction if form is submitted
