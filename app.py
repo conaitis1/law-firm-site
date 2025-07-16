@@ -440,7 +440,7 @@ with st.form("prediction_form"):
             options = sorted([
                 str(c.split(base_col + "_")[1])
                 for c in model.feature_names_in_
-                if c.startswith(base_col + "_") and base_col + "_" in c
+                if c.startswith(base_col + "_")
             ])
 
             val = col.selectbox(f"{base_col}", options)
