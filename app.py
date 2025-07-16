@@ -445,19 +445,25 @@ with st.form("prediction_form"):
             val = col.selectbox(f"{base_col}", options)
             user_input[base_col] = val
             already_handled.add(base_col)
+
         elif feature in df_model.columns:
             col = col1 if i % 2 == 0 else col2
             if df_model[feature].dtype == "object":
                 options = sorted(df_model[feature].dropna().unique())
                 val = col.selectbox(f"{feature}", options)
+                user_input[feature] = val
+
             elif df_model[feature].dtype == "bool":
                 val = col.checkbox(f"{feature}")
+                user_input[feature] = val
+
             else:
                 min_val = float(df_model[feature].min())
                 max_val = float(df_model[feature].max())
                 default_val = float(df_model[feature].median())
                 val = col.slider(f"{feature}", min_val, max_val, default_val)
-            user_input[feature] = val
+                user_input[feature] = val
+
 
     submitted = st.form_submit_button("Predict")
 
