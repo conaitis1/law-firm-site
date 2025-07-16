@@ -6,7 +6,7 @@ from st_aggrid import AgGrid, GridOptionsBuilder, JsCode
 def load_model():
     return joblib.load("rf_model.joblib")
 
-st.set_page_config(page_title="Law Firm Case Explorer", layout="wide")
+st.set_page_config(page_title="Da troof", layout="wide")
 st.markdown("""
     <style>
     .stSelectbox div[role="option"]:first-child {
