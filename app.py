@@ -433,6 +433,8 @@ df_full.rename(columns={
     "FederalCourt_x": "Federal Court",
     "SICCode_x": "SIC Code",
 }, inplace=True)
+show_numerical_filters = st.checkbox("Show Numerical Filters", value=True)
+
 with st.form("prediction_form"):
     st.markdown("### Simulate a Case Below")
     user_input = {}
@@ -450,9 +452,10 @@ with st.form("prediction_form"):
         if raw_col not in df_full.columns:
             st.warning(f"Column '{raw_col}' not found in data.")
             continue
-        options = sorted(df_full[raw_col].dropna().astype(str).unique())
-        selected = st.selectbox(f"{raw_col}", ["Select..."] + options)
-        user_input[encoded_col] = None if selected == "Select..." else selected
+        options = ["Select..."] + sorted(df_full[col].dropna().unique().astype(str))
+        selected = col.selectbox(f"{col}", options, index=0)
+        if selected != "Select...":
+            user_input[col] = selected
 
 
 
