@@ -439,14 +439,14 @@ with st.form("prediction_form"):
     col1, col2 = st.columns(2)
 
     # Manually handle categorical single columns
-    categorical_single_columns = ["FederalJudge", "FederalCourt", "SICCode"]
-    for col in categorical_single_columns:
-        if col not in df_full.columns:
-            st.warning(f"Column '{col}' not found in data.")
-            continue
-        options = sorted(df_full[col].dropna().astype(str).unique())
-        selected = st.selectbox(f"{col}", ["Select..."] + options)
-        user_input[col] = None if selected == "Select..." else selected
+   # categorical_single_columns = ["FederalJudge", "FederalCourt", "SICCode"]
+    #for col in categorical_single_columns:
+     #   if col not in df_full.columns:
+      #      st.warning(f"Column '{col}' not found in data.")
+       #     continue
+        #options = sorted(df_full[col].dropna().astype(str).unique())
+        #selected = st.selectbox(f"{col}", ["Select..."] + options)
+        #user_input[col] = None if selected == "Select..." else selected
 
 
     for i, feature in enumerate(numerical_features):
