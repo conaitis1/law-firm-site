@@ -434,13 +434,13 @@ with st.form("prediction_form"):
 
     already_handled = set()
     for i, feature in enumerate(features):
-        if feature.endswith("_legal") and feature not in already_handled:
+        if any(feature + "_" in col for col in model.feature_names_in_) and feature not in already_handled:
             base_col = feature
             col = col1 if i % 2 == 0 else col2
             options = sorted({
-                f.replace(base_col + "_", "")
-                for f in model.feature_names_in_
-                if f.startswith(base_col + "_")
+                c.split(base_col + "_")[1]
+                for c in model.feature_names_in_
+                if c.startswith(base_col + "_")
             })
             val = col.selectbox(f"{base_col}", options)
             user_input[base_col] = val
