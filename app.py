@@ -444,6 +444,9 @@ with st.form("prediction_form"):
     # Manually handle categorical single columns
     categorical_single_columns = ["FederalJudge_legal", "FederalCourt_legal", "SICCode_legal"]
     for col in categorical_single_columns:
+        if col not in df_full.columns:
+            st.warning(f"Column '{col}' not found in data.")
+            continue
         options = sorted(df_full[col].dropna().unique())
         user_input[col] = st.selectbox(f"{col}", options)
 
