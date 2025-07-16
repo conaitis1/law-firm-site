@@ -429,6 +429,7 @@ categorical_features = df[features].select_dtypes(include=["object", "bool"]).co
 
 # Create form layout for inputs
 st.markdown("### Simulate a Case Below")
+print("MODEL COLUMNS:", model.feature_names_in_)
 
 with st.form("prediction_form"):
     col1, col2 = st.columns(2)
@@ -437,12 +438,16 @@ with st.form("prediction_form"):
     for i, feature in enumerate(model.feature_names_in_):
         col = col1 if i % 2 == 0 else col2
 
+        # ✅ Properly handle one-hot vs non-one-hot encoded features
         if "_legal_" in feature:
-            base_col = "_".join(feature.split("_")[:2])  # e.g., FederalJudge_legal
+        # One-hot encoded (e.g., FederalJudge_legal_Smith) ➜ base = FederalJudge_legal
+            base_col = "_".join(feature.split("_")[:3])
+        elif feature.endswith("_legal"):
+    # Not one-hot (e.g., FederalJudge_legal) ➜ base = FederalJudge_legal
+            base_col = feature
+        else:
+            base_col = feature
 
-            # Don't repeat input fields
-            if base_col in user_input:
-                continue
 
             # Get options from model columns
             options = sorted(set(
