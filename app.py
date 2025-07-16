@@ -467,8 +467,9 @@ with st.form("prediction_form"):
             user_input[feature] = val
 
 
+    # Skip any base_col that's already manually handled
     for i, (base_col, options) in enumerate(base_col_to_options.items()):
-        if base_col in df.columns:
+        if base_col in df.columns and f"{base_col}_legal" not in categorical_single_columns:
             col = col1 if i % 2 == 0 else col2
             selected = col.selectbox(f"{base_col}", sorted(options))
             for opt in options:
