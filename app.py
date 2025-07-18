@@ -447,15 +447,17 @@ with st.form("prediction_form"):
         "SICCode_legal": "SIC Code"
     }
 
-    for encoded_col, raw_col in categorical_single_columns.items():
+    for i, (encoded_col, raw_col) in enumerate(categorical_single_columns.items()):
         if raw_col not in df_full.columns:
             st.warning(f"Column '{raw_col}' not found in data.")
             continue
-        options = ["Select..."] + sorted(df_full[raw_col].dropna().unique().astype(str))
+        options = sorted(df_full[raw_col].dropna().astype(str).unique())
         col = col1 if i % 2 == 0 else col2
-        selected = col.selectbox(f"{raw_col}", options, index=0)  # Use raw_col here
+        selected = col.selectbox(f"{raw_col}", options=["Select..."] + options, index=0, placeholder="Select...")
         if selected != "Select...":
-            user_input[encoded_col] = 1
+            for opt in options:
+                user_input[f"{encoded_col[:-6]}_{opt}"] = 1 if opt == selected else 0
+
 
 
 
