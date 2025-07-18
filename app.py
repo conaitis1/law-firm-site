@@ -452,7 +452,6 @@ with st.form("prediction_form"):
             st.warning(f"Column '{raw_col}' not found in data.")
             continue
         options = ["Select..."] + sorted(df_full[raw_col].dropna().unique().astype(str))
-        col = col1 if i % 2 == 0 else col2  # Add this line
         selected = col.selectbox(f"{raw_col}", options, index=0)  # Use raw_col here
         if selected != "Select...":
             user_input[encoded_col] = 1
