@@ -410,6 +410,11 @@ file_path = "THE BIG ANSWER SEPT.23.xlsx"
 df_legal = pd.read_excel(file_path, sheet_name=0)
 df_fin = pd.read_excel(file_path, sheet_name=1)
 df_full = pd.merge(df_legal, df_fin, on="CaseID", how="left")
+df_full.rename(columns={
+    "FederalJudge_x": "FederalJudge_legal",
+    "FederalCourt_x": "FederalCourt_legal",
+    "SICCode_x": "SICCode_legal"
+}, inplace=True)
 
 # Select only model columns
 categorical_columns = []
@@ -424,32 +429,47 @@ for col in model.feature_names_in_:
 
 st.markdown("### Simulate a Case Below")
 with st.form("prediction_form"):
+    st.markdown("### Simulate a Case Below")
     user_input = {}
 
-    # Use the list of model features
-    for feature in model.feature_names_in_:
+    # Friendly display names for UI
+    display_names = {
+        "FederalJudge_legal": "Federal Judge",
+        "FederalCourt_legal": "Federal Court",
+        "SICCode_legal": "SIC Code"
+        # Add more as needed
+    }
+
+    col1, col2 = st.columns(2)
+
+    for i, feature in enumerate(model.feature_names_in_):
         if feature not in df_full.columns:
             st.warning(f"Column '{feature}' not found in data.")
             continue
 
+        # Friendly label
+        label = display_names.get(feature, feature)
+        col = col1 if i % 2 == 0 else col2
+
         if feature in numerical_columns:
-            # Add checkbox to enable/disable this numeric filter
-            enable = st.checkbox(f"Use {feature}", value=False)
+            # Add checkbox to enable/disable numeric filter
+            enable = col.checkbox(f"Use {label}", value=False)
             if enable:
                 col_data = pd.to_numeric(df_full[feature], errors="coerce")
                 min_val = float(col_data.min())
                 max_val = float(col_data.max())
                 default_val = float(col_data.median())
-                user_input[feature] = st.slider(f"{feature}", min_val, max_val, default_val)
+                user_input[feature] = col.slider(label, min_val, max_val, default_val)
             else:
                 user_input[feature] = None
-
-        elif feature in categorical_columns:
-            options = sorted(df_full[feature].dropna().astype(str).unique())
-            selected = st.selectbox(f"{feature}", ["Select..."] + options)
+        else:
+            # Categorical dropdown with "Select..." placeholder
+            options = sorted([str(x) for x in df_full[feature].dropna().unique()])
+            selected = col.selectbox(label, ["Select..."] + options, index=0)
             user_input[feature] = None if selected == "Select..." else selected
 
     submitted = st.form_submit_button("Predict")
+
 
 # === Run Prediction ===
 if submitted:
