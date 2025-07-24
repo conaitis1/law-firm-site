@@ -395,110 +395,78 @@ if not filtered_df.empty:
 
 import joblib
 import numpy as np
-import matplotlib.pyplot as plt
-import joblib
-import numpy as np
 import pandas as pd
 import streamlit as st
-# ✅ Setup prediction section
 
-# ✅ Setup prediction section
 st.markdown("## 📈 Predict Case Outcome Based on Inputs")
 st.markdown("Use the filters below to simulate a new case and predict its likely outcome.")
 
-# Load the model and get features
+# Load model
 model = joblib.load("rf_model.joblib")
-all_model_features = list(model.feature_names_in_)
+features = list(model.feature_names_in_)
 
-# Load and join data
+# Load data
 file_path = "THE BIG ANSWER SEPT.23.xlsx"
 df_legal = pd.read_excel(file_path, sheet_name=0)
 df_fin = pd.read_excel(file_path, sheet_name=1)
 df_full = pd.merge(df_legal, df_fin, on="CaseID", how="left")
 
-# Identify base categorical columns from one-hot encoding
-base_col_to_options = {}
-for col in all_model_features:
-    if "_" in col:
-        base, val = col.rsplit("_", 1)
-        base_col_to_options.setdefault(base, set()).add(val)
+# Select only model columns
+df_filtered = df_full[features]
 
-# Numerical features (everything else)
-flattened_categoricals = {f"{base}_{val}" for base, vals in base_col_to_options.items() for val in vals}
-numerical_features = [col for col in all_model_features if col not in flattened_categoricals]
-# === Build Form ===
-df_full = pd.merge(df_legal, df_fin, on="CaseID", how="left")  # <-- add this line
-df_full.rename(columns={
-    "FederalJudge_x": "Federal Judge",
-    "FederalCourt_x": "Federal Court",
-    "SICCode_x": "SIC Code",
-}, inplace=True)
+# Detect categorical and numerical features
+categorical_columns = df_filtered.select_dtypes(include=["object", "bool"]).columns.tolist()
+numerical_columns = df_filtered.select_dtypes(include=["int64", "float64", "int32", "float32"]).columns.tolist()
 
+st.markdown("### Simulate a Case Below")
 with st.form("prediction_form"):
-    st.markdown("### Simulate a Case Below")
     user_input = {}
     col1, col2 = st.columns(2)
-    show_numerical_filters = st.checkbox("Show Numerical Filters", value=True)
-    # Manually handle categorical single columns
-    # Manually handle categorical single columns
-    categorical_single_columns = {
-        "FederalJudge_legal": "Federal Judge",
-        "FederalCourt_legal": "Federal Court",
-        "SICCode_legal": "SIC Code"
-    }
 
-    for i, (encoded_col, raw_col) in enumerate(categorical_single_columns.items()):
-        if raw_col not in df_full.columns:
-            st.warning(f"Column '{raw_col}' not found in data.")
-            continue
-        options = sorted(df_full[raw_col].dropna().astype(str).unique())
+    for i, feature in enumerate(features):
         col = col1 if i % 2 == 0 else col2
-        selected = col.selectbox(f"{raw_col}", options=["Select..."] + options, index=0, placeholder="Select...")
-        if selected != "Select...":
-            for opt in options:
-                user_input[f"{encoded_col[:-6]}_{opt}"] = 1 if opt == selected else 0
 
+        if feature in categorical_columns:
+            options = sorted(df_full[feature].dropna().unique())
+            options_display = ["Select..."] + list(options)
+            selected = col.selectbox(f"{feature}", options_display, index=0)
+            user_input[feature] = selected if selected != "Select..." else None
 
-
-
-    if show_numerical_filters:
-        for i, feature in enumerate(numerical_features):
-            if feature in df_full.columns:
-                col = col1 if i % 2 == 0 else col2
-                cleaned_series = pd.to_numeric(df_full[feature], errors="coerce")
-                min_val = float(cleaned_series.min())
-                max_val = float(cleaned_series.max())
-                default_val = float(cleaned_series.median())
+        elif feature in numerical_columns:
+            use_filter = col.checkbox(f"Enable filter for {feature}", value=False)
+            if use_filter:
+                min_val = float(df_full[feature].min())
+                max_val = float(df_full[feature].max())
+                default_val = float(df_full[feature].median())
                 val = col.slider(f"{feature}", min_val, max_val, default_val)
                 user_input[feature] = val
-
-
-    # Skip any base_col that's already manually handled
-    for i, (base_col, options) in enumerate(base_col_to_options.items()):
-        if base_col in df.columns and f"{base_col}_legal" not in categorical_single_columns:
-            col = col1 if i % 2 == 0 else col2
-            selected = col.selectbox(f"{base_col}", sorted(options))
-            for opt in options:
-                user_input[f"{base_col}_{opt}"] = 1 if opt == selected else 0
+            else:
+                user_input[feature] = None
 
     submitted = st.form_submit_button("Predict")
 
-# === Run Prediction ===
 if submitted:
     input_df = pd.DataFrame([user_input])
+    input_df = input_df.dropna(axis=1, how="all")
 
-    # Ensure all model features are present
-    for col in all_model_features:
-        if col not in input_df.columns:
-            input_df[col] = 0
-    input_df = input_df[all_model_features]
+    if input_df.shape[1] < len(model.feature_names_in_):
+        st.warning("Please complete all required fields to get a prediction.")
+    else:
+        input_df = pd.get_dummies(input_df)
 
-    probs = model.predict_proba(input_df)[0]
-    labels = model.classes_
-    top_prediction = labels[np.argmax(probs)]
-    prob_dict = dict(zip(labels, probs))
+        for col in model.feature_names_in_:
+            if col not in input_df.columns:
+                input_df[col] = 0
 
-    st.subheader("🔮 Predicted Outcome")
-    st.write(f"**Most Likely Outcome:** {top_prediction}")
-    st.write("**Prediction Confidence:**")
-    st.write({k: f"{v:.2%}" for k, v in prob_dict.items()})
+        input_df = input_df[model.feature_names_in_]
+
+        probs = model.predict_proba(input_df)[0]
+        labels = model.classes_
+
+        prob_dict = dict(zip(labels, probs))
+        top_prediction = labels[np.argmax(probs)]
+
+        st.subheader("🔮 Predicted Outcome")
+        st.write(f"**Most Likely Outcome:** {top_prediction}")
+        st.write("**Prediction Confidence:**")
+        st.write({k: f"{v:.2%}" for k, v in prob_dict.items()})
