@@ -412,11 +412,15 @@ df_fin = pd.read_excel(file_path, sheet_name=1)
 df_full = pd.merge(df_legal, df_fin, on="CaseID", how="left")
 
 # Select only model columns
-df_filtered = df_full[features]
+categorical_columns = []
+numerical_columns = []
 
-# Detect categorical and numerical features
-categorical_columns = df_filtered.select_dtypes(include=["object", "bool"]).columns.tolist()
-numerical_columns = df_filtered.select_dtypes(include=["int64", "float64", "int32", "float32"]).columns.tolist()
+for col in model.feature_names_in_:
+    if col in df_full.columns:
+        if pd.api.types.is_numeric_dtype(df_full[col]):
+            numerical_columns.append(col)
+        else:
+            categorical_columns.append(col)
 
 st.markdown("### Simulate a Case Below")
 with st.form("prediction_form"):
