@@ -425,52 +425,50 @@ for col in model.feature_names_in_:
 st.markdown("### Simulate a Case Below")
 with st.form("prediction_form"):
     user_input = {}
-    col1, col2 = st.columns(2)
 
-    for i, feature in enumerate(features):
-        col = col1 if i % 2 == 0 else col2
+    # Use the list of model features
+    for feature in model.feature_names_in_:
+        if feature not in df_full.columns:
+            st.warning(f"Column '{feature}' not found in data.")
+            continue
 
-        if feature in categorical_columns:
-            options = sorted(df_full[feature].dropna().unique())
-            options_display = ["Select..."] + list(options)
-            selected = col.selectbox(f"{feature}", options_display, index=0)
-            user_input[feature] = selected if selected != "Select..." else None
-
-        elif feature in numerical_columns:
-            use_filter = col.checkbox(f"Enable filter for {feature}", value=False)
-            if use_filter:
-                min_val = float(df_full[feature].min())
-                max_val = float(df_full[feature].max())
-                default_val = float(df_full[feature].median())
-                val = col.slider(f"{feature}", min_val, max_val, default_val)
-                user_input[feature] = val
+        if feature in numerical_columns:
+            # Add checkbox to enable/disable this numeric filter
+            enable = st.checkbox(f"Use {feature}", value=False)
+            if enable:
+                col_data = pd.to_numeric(df_full[feature], errors="coerce")
+                min_val = float(col_data.min())
+                max_val = float(col_data.max())
+                default_val = float(col_data.median())
+                user_input[feature] = st.slider(f"{feature}", min_val, max_val, default_val)
             else:
                 user_input[feature] = None
 
+        elif feature in categorical_columns:
+            options = sorted(df_full[feature].dropna().astype(str).unique())
+            selected = st.selectbox(f"{feature}", ["Select..."] + options)
+            user_input[feature] = None if selected == "Select..." else selected
+
     submitted = st.form_submit_button("Predict")
 
+# === Run Prediction ===
 if submitted:
     input_df = pd.DataFrame([user_input])
-    input_df = input_df.dropna(axis=1, how="all")
 
-    if input_df.shape[1] < len(model.feature_names_in_):
-        st.warning("Please complete all required fields to get a prediction.")
-    else:
-        input_df = pd.get_dummies(input_df)
+    # Ensure all model features are present (fill missing with None)
+    for col in model.feature_names_in_:
+        if col not in input_df.columns:
+            input_df[col] = None
 
-        for col in model.feature_names_in_:
-            if col not in input_df.columns:
-                input_df[col] = 0
+    input_df = input_df[model.feature_names_in_]
 
-        input_df = input_df[model.feature_names_in_]
+    # Make prediction
+    probs = model.predict_proba(input_df)[0]
+    labels = model.classes_
+    top_prediction = labels[np.argmax(probs)]
+    prob_dict = dict(zip(labels, probs))
 
-        probs = model.predict_proba(input_df)[0]
-        labels = model.classes_
-
-        prob_dict = dict(zip(labels, probs))
-        top_prediction = labels[np.argmax(probs)]
-
-        st.subheader("🔮 Predicted Outcome")
-        st.write(f"**Most Likely Outcome:** {top_prediction}")
-        st.write("**Prediction Confidence:**")
-        st.write({k: f"{v:.2%}" for k, v in prob_dict.items()})
+    st.subheader("🔮 Predicted Outcome")
+    st.write(f"**Most Likely Outcome:** {top_prediction}")
+    st.write("**Prediction Confidence:**")
+    st.write({k: f"{v:.2%}" for k, v in prob_dict.items()})
