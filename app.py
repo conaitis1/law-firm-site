@@ -446,18 +446,22 @@ with st.form("prediction_form"):
         if feature in df_full.columns:
             col = col1 if i % 2 == 0 else col2
             label = display_names.get(feature, feature.replace("_", " "))
-        
-            if df_full[feature].dtype == "object" or df_full[feature].dtype == "category":
-                options = sorted([str(o) for o in df_full[feature].dropna().unique()])
-                options.insert(0, "Select...")  # Add ghosted placeholder
+            dtype = df_full[feature].dtype
+
+        # Handle categorical
+            if dtype == "object" or dtype.name == "category":
+                options = sorted(set(str(val) for val in df_full[feature].dropna().unique()))
+                options.insert(0, "Select...")  # ghosted
                 val = col.selectbox(label, options, index=0)
                 user_input[feature] = None if val == "Select..." else val
 
-            elif pd.api.types.is_bool_dtype(df_full[feature]):
+        # Handle boolean
+            elif pd.api.types.is_bool_dtype(dtype):
                 val = col.checkbox(label)
                 user_input[feature] = val
 
-            elif pd.api.types.is_numeric_dtype(df_full[feature]):
+        # Handle numeric
+            elif pd.api.types.is_numeric_dtype(dtype):
                 toggle = col.checkbox(f"Filter by {label}")
                 if toggle:
                     min_val = float(df_full[feature].min())
@@ -465,6 +469,7 @@ with st.form("prediction_form"):
                     default_val = float(df_full[feature].median())
                     val = col.slider(label, min_val, max_val, default_val)
                     user_input[feature] = val
+
 
 
     submitted = st.form_submit_button("Predict")
