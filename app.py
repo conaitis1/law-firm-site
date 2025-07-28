@@ -443,30 +443,29 @@ with st.form("prediction_form"):
     col1, col2 = st.columns(2)
 
     for i, feature in enumerate(model.feature_names_in_):
-        if feature not in df_full.columns:
-            st.warning(f"Column '{feature}' not found in data.")
-            continue
+        if feature in df_full.columns:
+            col = col1 if i % 2 == 0 else col2
+            label = display_names.get(feature, feature.replace("_", " "))
+        
+            if df_full[feature].dtype == "object" or df_full[feature].dtype == "category":
+                options = sorted([str(o) for o in df_full[feature].dropna().unique()])
+                options.insert(0, "Select...")  # Add ghosted placeholder
+                val = col.selectbox(label, options, index=0)
+                user_input[feature] = None if val == "Select..." else val
 
-        # Friendly label
-        label = display_names.get(feature, feature)
-        col = col1 if i % 2 == 0 else col2
+            elif pd.api.types.is_bool_dtype(df_full[feature]):
+                val = col.checkbox(label)
+                user_input[feature] = val
 
-        if feature in numerical_columns:
-            # Add checkbox to enable/disable numeric filter
-            enable = col.checkbox(f"Use {label}", value=False)
-            if enable:
-                col_data = pd.to_numeric(df_full[feature], errors="coerce")
-                min_val = float(col_data.min())
-                max_val = float(col_data.max())
-                default_val = float(col_data.median())
-                user_input[feature] = col.slider(label, min_val, max_val, default_val)
-            else:
-                user_input[feature] = None
-        else:
-            # Categorical dropdown with "Select..." placeholder
-            options = sorted([str(x) for x in df_full[feature].dropna().unique()])
-            selected = col.selectbox(label, ["Select..."] + options, index=0)
-            user_input[feature] = None if selected == "Select..." else selected
+            elif pd.api.types.is_numeric_dtype(df_full[feature]):
+                toggle = col.checkbox(f"Filter by {label}")
+                if toggle:
+                    min_val = float(df_full[feature].min())
+                    max_val = float(df_full[feature].max())
+                    default_val = float(df_full[feature].median())
+                    val = col.slider(label, min_val, max_val, default_val)
+                    user_input[feature] = val
+
 
     submitted = st.form_submit_button("Predict")
 
