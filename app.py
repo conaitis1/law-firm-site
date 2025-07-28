@@ -480,11 +480,12 @@ if submitted:
     input_df = pd.DataFrame([user_input])
     input_df = pd.get_dummies(input_df)
 
-    # Ensure all model features are present (fill missing with None)
+    # Add missing dummy columns with 0
     for col in model.feature_names_in_:
         if col not in input_df.columns:
             input_df[col] = 0
 
+    # Reorder columns to match training
     input_df = input_df[model.feature_names_in_]
 
     # Make prediction
@@ -497,3 +498,4 @@ if submitted:
     st.write(f"**Most Likely Outcome:** {top_prediction}")
     st.write("**Prediction Confidence:**")
     st.write({k: f"{v:.2%}" for k, v in prob_dict.items()})
+
