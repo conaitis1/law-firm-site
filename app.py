@@ -478,6 +478,7 @@ with st.form("prediction_form"):
 # === Run Prediction ===
 if submitted:
     input_df = pd.DataFrame([user_input])
+    input_df = pd.get_dummies(input_df)
 
     # Ensure all model features are present (fill missing with None)
     for col in model.feature_names_in_:
