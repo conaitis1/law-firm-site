@@ -495,7 +495,25 @@ if submitted:
     prob_dict = dict(zip(labels, probs))
 
     st.subheader("🔮 Predicted Outcome")
-    st.write(f"**Most Likely Outcome:** {top_prediction}")
-    st.write("**Prediction Confidence:**")
-    st.write({k: f"{v:.2%}" for k, v in prob_dict.items()})
+
+    col1, col2 = st.columns([1, 1])  # Split into left and right columns
+
+    with col1:
+        st.markdown(f"**Most Likely Outcome:** {top_prediction}")
+
+    # Plot pie chart of prediction probabilities
+        fig, ax = plt.subplots(figsize=(4, 4), dpi=150)
+        ax.pie(
+            probs,
+            labels=labels,
+            autopct="%1.1f%%",
+            startangle=90,
+            textprops={"fontsize": 8},
+        )
+        ax.axis("equal")
+        st.pyplot(fig, use_container_width=False, clear_figure=True)
+
+    with col2:
+        pass  # Leave right column empty for spacing
+
 
