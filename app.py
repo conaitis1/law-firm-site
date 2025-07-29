@@ -429,7 +429,6 @@ for col in model.feature_names_in_:
 
 st.markdown("### Simulate a Case Below")
 with st.form("prediction_form"):
-    st.markdown("### Simulate a Case Below")
     user_input = {}
 
     # Friendly display names for UI
