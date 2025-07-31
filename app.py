@@ -450,7 +450,7 @@ with st.form("prediction_form"):
         # Handle categorical
             if dtype == "object" or dtype.name == "category":
                 if feature == "Prior Year Revenue (TTM)":
-                    raw_vals = sorted(df_full[feature].dropna().unique())
+                    raw_vals = sorted(pd.to_numeric(df_full[feature], errors="coerce").dropna().unique())
                     options = ["Select..."] + [f"${v:,.0f}" for v in raw_vals]
                     display_to_value = dict(zip([f"${v:,.0f}" for v in raw_vals], raw_vals))
                     val = col.selectbox(label, options, index=0)
