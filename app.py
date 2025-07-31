@@ -449,10 +449,18 @@ with st.form("prediction_form"):
 
         # Handle categorical
             if dtype == "object" or dtype.name == "category":
-                options = sorted(set(str(val) for val in df_full[feature].dropna().unique()))
-                options.insert(0, "Select...")  # ghosted
-                val = col.selectbox(label, options, index=0)
-                user_input[feature] = None if val == "Select..." else val
+                if feature == "Prior Year Revenue (TTM)":
+                    raw_vals = sorted(df_full[feature].dropna().unique())
+                    options = ["Select..."] + [f"${v:,.0f}" for v in raw_vals]
+                    display_to_value = dict(zip([f"${v:,.0f}" for v in raw_vals], raw_vals))
+                    val = col.selectbox(label, options, index=0)
+                    user_input[feature] = None if val == "Select..." else display_to_value[val]
+                else:
+                    options = sorted(set(str(val) for val in df_full[feature].dropna().unique()))
+                    options.insert(0, "Select...")
+                    val = col.selectbox(label, options, index=0)
+                    user_input[feature] = None if val == "Select..." else val
+
 
         # Handle boolean
             elif pd.api.types.is_bool_dtype(dtype):
