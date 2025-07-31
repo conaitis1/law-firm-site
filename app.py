@@ -95,7 +95,6 @@ plaintiff_firm = st.sidebar.selectbox(
     index=None,  # 👈 makes it look empty until user clicks
     placeholder="Select firm..."
 )
-
 # Defendant Firm
 defendant_firm_options = ["All"] + extract_individual_firms("Defendant Firms")
 defendant_firm = st.sidebar.selectbox(
@@ -391,7 +390,8 @@ if not filtered_df.empty:
             "Value": value_col
         })
 
-        st.table(table_data)
+        st.table(table_data.set_index("Range"))
+
 
 import joblib
 import numpy as np
