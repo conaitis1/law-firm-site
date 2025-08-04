@@ -486,22 +486,28 @@ with st.form("prediction_form"):
     if submitted:
         input_df = pd.DataFrame(user_input)
 
-    # Clean string inputs
+    # Replace "None" strings and blanks with np.nan
         input_df.replace("None", np.nan, inplace=True)
         input_df.replace("", np.nan, inplace=True)
 
-    # Infer object types (useful for numeric strings)
-        input_df = input_df.infer_objects()
+    # Identify categorical columns explicitly
+        categorical_columns = ['FederalJudge_legal', 'FederalCourt_legal', 'SICCode_legal', 
+                           'Institutional Ownership', 'Insider Ownership']  # Add any others as needed
 
-    # One-hot encode to match training
+    # Convert to category dtype (ensures get_dummies picks them up)
+        for col in categorical_columns:
+            if col in input_df.columns:
+                input_df[col] = input_df[col].astype('category')
+
+    # One-hot encode categorical variables
         input_df = pd.get_dummies(input_df)
 
-    # Ensure all model columns exist in the input
+    # Fill in any missing columns that the model was trained on
         for col in model.feature_names_in_:
             if col not in input_df.columns:
-                input_df[col] = 0  # Add missing column as zero
+                input_df[col] = 0
 
-    # Reorder to match model's training column order
+    # Reorder columns to match training
         input_df = input_df[model.feature_names_in_]
 
     # Predict
@@ -509,6 +515,7 @@ with st.form("prediction_form"):
         labels = model.classes_
         top_prediction = labels[np.argmax(probs)]
         prob_dict = dict(zip(labels, probs))
+
 
 
     st.subheader("🔮 Predicted Outcome")
