@@ -70,6 +70,11 @@ for col in high_card_cols:
 # === Step 2: Encode remaining categoricals using one-hot
 low_card_cols = X.select_dtypes(include=["object", "category"]).columns
 from sklearn.preprocessing import LabelEncoder
+# Force certain columns to numeric
+numeric_cols = ['Prior Year Revenue (TTM)', 'Current Ratio']
+for col in numeric_cols:
+    if col in X.columns:
+        X[col] = pd.to_numeric(X[col], errors='coerce')
 
 # Columns to label encode (keep as single features)
 label_cols = ['FederalCourt_legal', 'FederalJudge_legal', 'SICCode_legal', 'PlaintiffFirm_legal', 'DefendantFirm_legal']
