@@ -489,6 +489,8 @@ if submitted:
     input_df.replace("None", np.nan, inplace=True)
     input_df.replace("", np.nan, inplace=True)
     input_df = input_df.infer_objects()
+    # Apply one-hot encoding to match model training
+    input_df = pd.get_dummies(input_df)
 
 # Keep only the columns the model was trained on
 
