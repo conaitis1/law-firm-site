@@ -502,8 +502,11 @@ with st.form("prediction_form"):
         col1, col2 = st.columns([1, 1])  # Split into left and right columns
 
         with col1:
-            st.markdown(f"**Most Likely Outcome:** {top_prediction}")
+            # Generate prediction probabilities
+            probs = model.predict_proba(input_df)[0]
+            labels = model.classes_
 
+# Plot pie chart
             fig, ax = plt.subplots(figsize=(4, 4), dpi=150)
             ax.pie(
                 probs,
@@ -514,6 +517,7 @@ with st.form("prediction_form"):
             )
             ax.axis("equal")
             st.pyplot(fig, use_container_width=False, clear_figure=True)
+
 
         with col2:
             pass  # Blank for spacing
