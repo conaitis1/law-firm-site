@@ -487,7 +487,6 @@ if submitted:
     input_df = pd.DataFrame([user_input])
 
 # Keep only the columns the model was trained on
-    input_df = input_df[[col for col in model.feature_names_in_ if col in input_df.columns]]
 
 # Add any missing features with default values (e.g., 0 or None)
     for col in model.feature_names_in_:
