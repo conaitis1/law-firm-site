@@ -485,23 +485,10 @@ with st.form("prediction_form"):
 # === Run Prediction ===
     if submitted:
         input_df = pd.DataFrame(user_input)
-
-    # Replace "None" strings and blanks with np.nan
         input_df.replace("None", np.nan, inplace=True)
         input_df.replace("", np.nan, inplace=True)
 
-    # Identify categorical columns explicitly
-        categorical_columns = ['FederalJudge_legal', 'FederalCourt_legal', 'SICCode_legal', 
-                           'Institutional Ownership', 'Insider Ownership']  # Add any others as needed
-
-    # Convert to category dtype (ensures get_dummies picks them up)
-        for col in categorical_columns:
-            if col in input_df.columns:
-                input_df[col] = input_df[col].astype('category')
-
-    # One-hot encode categorical variables
-
-    # Reorder columns to match training
+    # Just reorder columns to match model — no encoding
         input_df = input_df[[col for col in model.feature_names_in_ if col in input_df.columns]]
 
     # Predict
@@ -510,28 +497,26 @@ with st.form("prediction_form"):
         top_prediction = labels[np.argmax(probs)]
         prob_dict = dict(zip(labels, probs))
 
+        st.subheader("🔮 Predicted Outcome")
 
+        col1, col2 = st.columns([1, 1])  # Split into left and right columns
 
-    st.subheader("🔮 Predicted Outcome")
+        with col1:
+            st.markdown(f"**Most Likely Outcome:** {top_prediction}")
 
-    col1, col2 = st.columns([1, 1])  # Split into left and right columns
+            fig, ax = plt.subplots(figsize=(4, 4), dpi=150)
+            ax.pie(
+                probs,
+                labels=labels,
+                autopct="%1.1f%%",
+                startangle=90,
+                textprops={"fontsize": 8},
+            )
+            ax.axis("equal")
+            st.pyplot(fig, use_container_width=False, clear_figure=True)
 
-    with col1:
-        st.markdown(f"**Most Likely Outcome:** {top_prediction}")
+        with col2:
+            pass  # Blank for spacing
 
-    # Plot pie chart of prediction probabilities
-        fig, ax = plt.subplots(figsize=(4, 4), dpi=150)
-        ax.pie(
-            probs,
-            labels=labels,
-            autopct="%1.1f%%",
-            startangle=90,
-            textprops={"fontsize": 8},
-        )
-        ax.axis("equal")
-        st.pyplot(fig, use_container_width=False, clear_figure=True)
-
-    with col2:
-        pass  # Leave right column empty for spacing
 
 
