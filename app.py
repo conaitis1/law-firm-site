@@ -485,8 +485,13 @@ with st.form("prediction_form"):
 # === Run Prediction ===
 if submitted:
     input_df = pd.DataFrame([user_input])
+    # Convert any "None" strings to real NaNs and try to infer types
+    input_df.replace("None", np.nan, inplace=True)
+    input_df.replace("", np.nan, inplace=True)
+    input_df = input_df.infer_objects()
 
 # Keep only the columns the model was trained on
+
 
 # Add any missing features with default values (e.g., 0 or None)
     # Ensure all features are present and fill missing with appropriate defaults
@@ -503,6 +508,7 @@ if submitted:
 # Reorder to match training
     input_df = input_df[model.feature_names_in_]
 
+    # Add this before prediction
 
     # Make prediction
     probs = model.predict_proba(input_df)[0]
