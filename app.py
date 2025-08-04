@@ -487,10 +487,10 @@ with st.form("prediction_form"):
         if isinstance(user_input, dict):
             user_input = [user_input]
 
-        input_df = pd.DataFrame([user_input])
+        input_df = pd.DataFrame(user_input)
         input_df.replace("None", np.nan, inplace=True)
         input_df.replace("", np.nan, inplace=True)
-
+        input_df = input_df.infer_objects()
     # Just reorder columns to match model — no encoding
         input_df = input_df[[col for col in model.feature_names_in_ if col in input_df.columns]]
 
