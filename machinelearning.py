@@ -51,8 +51,8 @@ for col in X.columns:
         X[col] = X[col].map({"Yes": 1, "No": 0, 1: 1, 0: 0})
 
 # Encode object fields
-for col in X.select_dtypes(include="object").columns:
-    X[col] = X[col].astype("category").cat.codes
+# One-hot encode categorical features
+X = pd.get_dummies(X)
 
 X = X.fillna(0)
 
