@@ -69,10 +69,23 @@ for col in high_card_cols:
 
 # === Step 2: Encode remaining categoricals using one-hot
 low_card_cols = X.select_dtypes(include=["object", "category"]).columns
-X = pd.get_dummies(X, columns=low_card_cols, drop_first=True)
+from sklearn.preprocessing import LabelEncoder
+
+# Columns to label encode (keep as single features)
+label_cols = ['FederalCourt_legal', 'FederalJudge_legal', 'SICCode_legal', 'PlaintiffFirm_legal', 'DefendantFirm_legal']
+
+for col in label_cols:
+    if col in X.columns:
+        le = LabelEncoder()
+        X[col] = le.fit_transform(X[col].astype(str))
+
+# One-hot encode the rest
+X = pd.get_dummies(X, columns=[col for col in X.select_dtypes(include='object').columns if col not in label_cols], drop_first=True)
+
+X = X.fillna(0)
 
 # === Step 3: Fill missing + sort columns
-X = X.fillna(0)
+
 
 
 # === Train model ===
