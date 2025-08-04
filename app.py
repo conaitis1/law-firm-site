@@ -483,40 +483,33 @@ with st.form("prediction_form"):
 
 
 # === Run Prediction ===
-if submitted:
-    input_df = pd.DataFrame([user_input])
-    # Convert any "None" strings to real NaNs and try to infer types
-    input_df.replace("None", np.nan, inplace=True)
-    input_df.replace("", np.nan, inplace=True)
-    input_df = input_df.infer_objects()
-    # Apply one-hot encoding to match model training
-    input_df = pd.get_dummies(input_df)
+    if submitted:
+        input_df = pd.DataFrame(user_input)
 
-# Keep only the columns the model was trained on
+    # Clean string inputs
+        input_df.replace("None", np.nan, inplace=True)
+        input_df.replace("", np.nan, inplace=True)
 
+    # Infer object types (useful for numeric strings)
+        input_df = input_df.infer_objects()
 
-# Add any missing features with default values (e.g., 0 or None)
-    # Ensure all features are present and fill missing with appropriate defaults
-    for col in model.feature_names_in_:
-        if col not in input_df.columns:
-            if col in categorical_columns:
-                input_df[col] = None
-            elif col in numerical_columns:
-                input_df[col] = 0
-            else:
-                input_df[col] = 0  # fallback
-  # or use np.nan if appropriate
+    # One-hot encode to match training
+        input_df = pd.get_dummies(input_df)
 
-# Reorder to match training
-    input_df = input_df[model.feature_names_in_]
+    # Ensure all model columns exist in the input
+        for col in model.feature_names_in_:
+            if col not in input_df.columns:
+                input_df[col] = 0  # Add missing column as zero
 
-    # Add this before prediction
+    # Reorder to match model's training column order
+        input_df = input_df[model.feature_names_in_]
 
-    # Make prediction
-    probs = model.predict_proba(input_df)[0]
-    labels = model.classes_
-    top_prediction = labels[np.argmax(probs)]
-    prob_dict = dict(zip(labels, probs))
+    # Predict
+        probs = model.predict_proba(input_df)[0]
+        labels = model.classes_
+        top_prediction = labels[np.argmax(probs)]
+        prob_dict = dict(zip(labels, probs))
+
 
     st.subheader("🔮 Predicted Outcome")
 
