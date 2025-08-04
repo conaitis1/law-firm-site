@@ -45,7 +45,9 @@ features = [f for f in features if f in df.columns]
 X = df[features].copy()
 y = df["TargetStatus"]
 
-# === Reduce cardinality ===
+from sklearn.preprocessing import LabelEncoder
+
+# === Step 1: Reduce cardinality
 def reduce_cardinality(df, col, top_n=20):
     top_vals = df[col].value_counts().head(top_n).index
     df[col] = df[col].where(df[col].isin(top_vals), "Other")
@@ -61,16 +63,17 @@ high_card_cols = [
 
 for col in high_card_cols:
     if col in X.columns:
-        X = reduce_cardinality(X, col, top_n=25)
+        X = reduce_cardinality(X, col, top_n=20)
+        le = LabelEncoder()
+        X[col] = le.fit_transform(X[col].astype(str))
 
-# === Map Y/N to binary (if any remain)
-for col in X.columns:
-    if "YN" in col:
-        X[col] = X[col].map({"Yes": 1, "No": 0, 1: 1, 0: 0})
+# === Step 2: Encode remaining categoricals using one-hot
+low_card_cols = X.select_dtypes(include=["object", "category"]).columns
+X = pd.get_dummies(X, columns=low_card_cols, drop_first=True)
 
-# === One-hot encode categorical features
-X = pd.get_dummies(X, drop_first=True)
+# === Step 3: Fill missing + sort columns
 X = X.fillna(0)
+
 
 # === Train model ===
 X_train, X_test, y_train, y_test = train_test_split(X, y, stratify=y, random_state=42)
