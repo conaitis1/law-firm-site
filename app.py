@@ -485,15 +485,18 @@ with st.form("prediction_form"):
 # === Run Prediction ===
 if submitted:
     input_df = pd.DataFrame([user_input])
-    input_df = pd.get_dummies(input_df)
 
-    # Add missing dummy columns with 0
+# Keep only the columns the model was trained on
+    input_df = input_df[[col for col in model.feature_names_in_ if col in input_df.columns]]
+
+# Add any missing features with default values (e.g., 0 or None)
     for col in model.feature_names_in_:
         if col not in input_df.columns:
-            input_df[col] = 0
+            input_df[col] = 0  # or use np.nan if appropriate
 
-    # Reorder columns to match training
+# Reorder to match training
     input_df = input_df[model.feature_names_in_]
+
 
     # Make prediction
     probs = model.predict_proba(input_df)[0]
