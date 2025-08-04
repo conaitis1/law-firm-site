@@ -500,15 +500,9 @@ with st.form("prediction_form"):
                 input_df[col] = input_df[col].astype('category')
 
     # One-hot encode categorical variables
-        input_df = pd.get_dummies(input_df)
-
-    # Fill in any missing columns that the model was trained on
-        for col in model.feature_names_in_:
-            if col not in input_df.columns:
-                input_df[col] = 0
 
     # Reorder columns to match training
-        input_df = input_df[model.feature_names_in_]
+        input_df = input_df[[col for col in model.feature_names_in_ if col in input_df.columns]]
 
     # Predict
         probs = model.predict_proba(input_df)[0]
