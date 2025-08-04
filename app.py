@@ -489,9 +489,16 @@ if submitted:
 # Keep only the columns the model was trained on
 
 # Add any missing features with default values (e.g., 0 or None)
+    # Ensure all features are present and fill missing with appropriate defaults
     for col in model.feature_names_in_:
         if col not in input_df.columns:
-            input_df[col] = 0  # or use np.nan if appropriate
+            if col in categorical_columns:
+                input_df[col] = None
+            elif col in numerical_columns:
+                input_df[col] = 0
+            else:
+                input_df[col] = 0  # fallback
+  # or use np.nan if appropriate
 
 # Reorder to match training
     input_df = input_df[model.feature_names_in_]
