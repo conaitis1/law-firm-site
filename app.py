@@ -508,7 +508,7 @@ with st.form("prediction_form"):
 
             st.subheader("🔮 Predicted Outcome")
 
-                col1, col2 = st.columns([1, 1])
+            col1, col2 = st.columns([1, 1])
 
             with col1:
                 fig, ax = plt.subplots(figsize=(4, 4), dpi=150)
