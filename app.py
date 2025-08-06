@@ -491,44 +491,43 @@ with st.form("prediction_form"):
         input_df.replace("None", np.nan, inplace=True)
         input_df.replace("", np.nan, inplace=True)
         input_df = input_df.infer_objects()
-    # Just reorder columns to match model — no encoding
-        # Ensure all required columns are present, filling missing ones with np.nan
+
+    # Add missing columns with NaN
         for col in model.feature_names_in_:
             if col not in input_df.columns:
                 input_df[col] = np.nan
-        input_df = input_df[model.feature_names_in_]
 
+    # Reorder columns to match model
+        input_df = input_df[list(model.feature_names_in_)]
 
-    # Predict
-        probs = model.predict_proba(input_df)[0]
-        labels = model.classes_
-        top_prediction = labels[np.argmax(probs)]
-        prob_dict = dict(zip(labels, probs))
-
-        st.subheader("🔮 Predicted Outcome")
-
-        col1, col2 = st.columns([1, 1])  # Split into left and right columns
-
-        with col1:
-            # Generate prediction probabilities
+        try:
+        # Predict
             probs = model.predict_proba(input_df)[0]
             labels = model.classes_
+            top_prediction = labels[np.argmax(probs)]
 
-# Plot pie chart
-            fig, ax = plt.subplots(figsize=(4, 4), dpi=150)
-            ax.pie(
-                probs,
-                labels=labels,
-                autopct="%1.1f%%",
-                startangle=90,
-                textprops={"fontsize": 8},
-            )
-            ax.axis("equal")
-            st.pyplot(fig, use_container_width=False, clear_figure=True)
+            st.subheader("🔮 Predicted Outcome")
 
+                col1, col2 = st.columns([1, 1])
 
-        with col2:
-            pass  # Blank for spacing
+            with col1:
+                fig, ax = plt.subplots(figsize=(4, 4), dpi=150)
+                ax.pie(
+                    probs,
+                    labels=labels,
+                    autopct="%1.1f%%",
+                    startangle=90,
+                    textprops={"fontsize": 8},
+                )
+                ax.axis("equal")
+                st.pyplot(fig, use_container_width=False, clear_figure=True)
+
+            with col2:
+                st.metric("Most Likely Outcome", top_prediction, f"{np.max(probs)*100:.1f}% confidence")
+
+        except ValueError as e:
+            st.error(f"Prediction failed: {e}")
+
 
 
 
