@@ -492,7 +492,12 @@ with st.form("prediction_form"):
         input_df.replace("", np.nan, inplace=True)
         input_df = input_df.infer_objects()
     # Just reorder columns to match model — no encoding
-        input_df = input_df[[col for col in model.feature_names_in_ if col in input_df.columns]]
+        # Ensure all required columns are present, filling missing ones with np.nan
+        for col in model.feature_names_in_:
+            if col not in input_df.columns:
+                input_df[col] = np.nan
+        input_df = input_df[model.feature_names_in_]
+
 
     # Predict
         probs = model.predict_proba(input_df)[0]
