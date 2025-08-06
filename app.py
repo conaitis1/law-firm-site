@@ -501,7 +501,15 @@ with st.form("prediction_form"):
         input_df = input_df[list(model.feature_names_in_)]
 
         try:
-        # Predict
+            # Ensure all missing columns are filled
+            input_df = input_df.fillna(0)
+
+            # Match dtypes with training features
+            for col in model.feature_names_in_:
+                if col in input_df.columns and input_df[col].dtype != type(model.feature_importances_[0]):
+                    input_df[col] = pd.to_numeric(input_df[col], errors='coerce').fillna(0)
+
+            # Predict
             probs = model.predict_proba(input_df)[0]
             labels = model.classes_
             top_prediction = labels[np.argmax(probs)]
@@ -525,9 +533,7 @@ with st.form("prediction_form"):
             with col2:
                 st.metric("Most Likely Outcome", top_prediction, f"{np.max(probs)*100:.1f}% confidence")
 
-        except ValueError as e:
+        except Exception as e:
             st.error(f"Prediction failed: {e}")
 
-
-
-
+        
