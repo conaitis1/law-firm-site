@@ -517,20 +517,21 @@ with st.form("prediction_form"):
         input_df = input_df[model.feature_names_in_]
 
 # Predict
-        probs = model.predict_proba(input_df)[0]
-        labels = model.classes_
-        top_prediction = labels[np.argmax(probs)]
+        try:
+            probs = model.predict_proba(input_df)[0]
+            labels = model.classes_
+            top_prediction = labels[np.argmax(probs)]
 
-        st.subheader("🔮 Predicted Outcome")
-        col1, col2 = st.columns([1, 1])
+            st.subheader("🔮 Predicted Outcome")
+            col1, col2 = st.columns([1, 1])
 
-        with col1:
-            fig, ax = plt.subplots(figsize=(4, 4), dpi=150)
-            ax.pie(probs, labels=labels, autopct="%1.1f%%")
-            st.pyplot(fig)
+            with col1:
+                fig, ax = plt.subplots(figsize=(4, 4), dpi=150)
+                ax.pie(probs, labels=labels, autopct="%1.1f%%")
+                st.pyplot(fig)
 
-            with col2:
-                st.metric("Most Likely Outcome", top_prediction, f"{np.max(probs)*100:.1f}% confidence")
+                with col2:
+                    st.metric("Most Likely Outcome", top_prediction, f"{np.max(probs)*100:.1f}% confidence")
 
         except Exception as e:
             st.error(f"Prediction failed: {e}")
