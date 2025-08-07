@@ -496,7 +496,7 @@ with st.form("prediction_form"):
     # Market Cap Drop slider
         market_cap_min, market_cap_max = float(df_full["Market Cap Drop"].min()), float(df_full["Market Cap Drop"].max())
         with col1:
-            use_market_cap = st.checkbox("Filter by Market Cap Drop")
+            use_market_cap = st.checkbox("Filter by Market Cap Drop", key="market_cap_filter_unique")
             if use_market_cap:
                 market_cap_range = st.slider("Market Cap Drop (%)", market_cap_min, market_cap_max, (market_cap_min, market_cap_max))
                 input_df = input_df[input_df["Market Cap Drop"].between(*market_cap_range)]
