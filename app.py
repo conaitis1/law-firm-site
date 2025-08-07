@@ -512,7 +512,7 @@ with st.form("prediction_form"):
 # Fill missing columns
         for col in model.feature_names_in_:
             if col not in input_df.columns:
-            input_df[col] = np.nan
+                input_df[col] = np.nan
 
         input_df = input_df[model.feature_names_in_]
 
