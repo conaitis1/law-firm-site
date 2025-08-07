@@ -513,7 +513,13 @@ with st.form("prediction_form"):
             if col not in input_df.columns:
                 input_df[col] = np.nan
 
-        input_df = input_df[model.feature_names_in_]
+        # Build input data row from user inputs only
+        row_data = {}
+        for col in model.feature_names_in_:
+            row_data[col] = user_input.get(col, np.nan)
+
+        input_df = pd.DataFrame([row_data])
+
 
 # Predict
         try:
