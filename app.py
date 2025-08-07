@@ -489,89 +489,71 @@ with st.form("prediction_form"):
     if submitted:
         input_df = df_full.copy()
 
-    # Apply prediction-only filters
+    # === Optional filters BEFORE simulation row ===
+        st.markdown("### 🔧 Optional Predictive Filters (Optional)")
         col1, col2 = st.columns(2)
 
+    # Market Cap Drop slider
+        market_cap_min, market_cap_max = float(df_full["Market Cap Drop"].min()), float(df_full["Market Cap Drop"].max())
         with col1:
-            if "Market Cap Drop" in input_df.columns:
-                market_cap_drop_range = st.slider("Market Cap Drop (%)", 0.0, 100.0, (0.0, 100.0))
-                input_df = input_df[input_df["Market Cap Drop"].between(*market_cap_drop_range)]
+            use_market_cap = st.checkbox("Filter by Market Cap Drop")
+            if use_market_cap:
+                market_cap_range = st.slider("Market Cap Drop (%)", market_cap_min, market_cap_max, (market_cap_min, market_cap_max))
+                input_df = input_df[input_df["Market Cap Drop"].between(*market_cap_range)]
 
+    # Short % slider
+        short_min, short_max = float(df_full["Short %"].min()), float(df_full["Short %"].max())
         with col2:
-            if "Short %" in input_df.columns:
-                short_percent_range = st.slider("Short %", 0.0, 100.0, (0.0, 100.0))
-                input_df = input_df[input_df["Short %"].between(*short_percent_range)]
+            use_short = st.checkbox("Filter by Short %")
+            if use_short:
+                short_range = st.slider("Short %", short_min, short_max, (short_min, short_max))
+                input_df = input_df[input_df["Short %"].between(*short_range)]
 
+    # WHY SUED CATEGORY filter
         with col1:
-            if "WHY SUED CATEGORY" in input_df.columns:
-                why_sued_options = input_df["WHY SUED CATEGORY"].dropna().unique().tolist()
-                why_sued_selection = st.selectbox("WHY SUED CATEGORY", ["Any"] + sorted(why_sued_options))
-                if why_sued_selection != "Any":
-                    input_df = input_df[input_df["WHY SUED CATEGORY"] == why_sued_selection]
+            why_sued_options = df_full["WHY SUED CATEGORY"].dropna().unique().tolist()
+            why_sued_selection = st.selectbox("WHY SUED CATEGORY", ["Any"] + sorted(why_sued_options))
+            if why_sued_selection != "Any":
+                input_df = input_df[input_df["WHY SUED CATEGORY"] == why_sued_selection]
 
-    # Use median row if none left after filters
+    # Handle empty case
         if input_df.empty:
+            st.warning("No data matches selected filters. Using median values.")
             input_df = df_full.copy()
 
-    # Apply user input
-        row_data = {}
-        for col in model.feature_names_in_:
-            row_data[col] = user_input.get(col, np.nan)
-        input_df = pd.DataFrame([row_data])
-
-
-# Fill missing columns
-        for col in model.feature_names_in_:
-            if col not in input_df.columns:
-                input_df[col] = np.nan
-
-        # Build input data row from user inputs only
+    # === Construct prediction row from form ===
         row_data = {}
         for col in model.feature_names_in_:
             row_data[col] = user_input.get(col, np.nan)
 
         input_df = pd.DataFrame([row_data])
 
-
-# Predict
+    # === Prediction logic ===
         try:
-    # 1. Create raw input row from simulation form
-            row_data = {}
-            for col in model.feature_names_in_:
-                if col in user_input:
-                    row_data[col] = user_input[col]
-                else:
-                    row_data[col] = np.nan  # default for missing
-
-            input_df = pd.DataFrame([row_data])
-
-    # 2. One-hot encode input to match training format
             input_df_encoded = pd.get_dummies(input_df)
 
-    # 3. Add any missing columns from training
+        # Fill missing columns with 0
             for col in model.feature_names_in_:
                 if col not in input_df_encoded.columns:
                     input_df_encoded[col] = 0
 
-    # 4. Reorder to match training columns
             input_df_encoded = input_df_encoded[model.feature_names_in_]
 
-    # 5. Make prediction
             probs = model.predict_proba(input_df_encoded)[0]
             labels = model.classes_
             top_prediction = labels[np.argmax(probs)]
 
             st.subheader("Predicted Outcome")
-
-            col1, col2 = st.columns([1, 1])
-            with col1:
+            c1, c2 = st.columns([1, 1])
+            with c1:
                 fig, ax = plt.subplots(figsize=(4, 4), dpi=150)
                 ax.pie(probs, labels=labels, autopct='%1.1f%%', startangle=140)
-                ax.axis('equal')
+                ax.axis("equal")
                 st.pyplot(fig)
 
-            with col2:
+            with c2:
                 st.metric("Top Predicted Outcome", top_prediction)
 
         except Exception as e:
             st.error(f"Prediction failed: {e}")
+
