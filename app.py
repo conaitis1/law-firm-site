@@ -523,22 +523,43 @@ with st.form("prediction_form"):
 
 # Predict
         try:
-            probs = model.predict_proba(input_df)[0]
+    # 1. Create raw input row from simulation form
+            row_data = {}
+            for col in model.feature_names_in_:
+                if col in user_input:
+                    row_data[col] = user_input[col]
+                else:
+                    row_data[col] = np.nan  # default for missing
+
+            input_df = pd.DataFrame([row_data])
+
+    # 2. One-hot encode input to match training format
+            input_df_encoded = pd.get_dummies(input_df)
+
+    # 3. Add any missing columns from training
+            for col in model.feature_names_in_:
+                if col not in input_df_encoded.columns:
+                    input_df_encoded[col] = 0
+
+    # 4. Reorder to match training columns
+            input_df_encoded = input_df_encoded[model.feature_names_in_]
+
+    # 5. Make prediction
+            probs = model.predict_proba(input_df_encoded)[0]
             labels = model.classes_
             top_prediction = labels[np.argmax(probs)]
 
-            st.subheader("🔮 Predicted Outcome")
-            col1, col2 = st.columns([1, 1])
+            st.subheader("Predicted Outcome")
 
+            col1, col2 = st.columns([1, 1])
             with col1:
                 fig, ax = plt.subplots(figsize=(4, 4), dpi=150)
-                ax.pie(probs, labels=labels, autopct="%1.1f%%")
+                ax.pie(probs, labels=labels, autopct='%1.1f%%', startangle=140)
+                ax.axis('equal')
                 st.pyplot(fig)
 
-                with col2:
-                    st.metric("Most Likely Outcome", top_prediction, f"{np.max(probs)*100:.1f}% confidence")
+            with col2:
+                st.metric("Top Predicted Outcome", top_prediction)
 
         except Exception as e:
             st.error(f"Prediction failed: {e}")
-
-        
