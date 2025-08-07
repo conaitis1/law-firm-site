@@ -38,7 +38,12 @@ features = [
     "Free Float Amount",
     "Insider Ownership",
     "Institutional Ownership",
-    "Prior Year Revenue (TTM)"
+    "Prior Year Revenue (TTM)", 
+    "WHY SUED CATEGORY",
+    "Market Cap High",
+    "Market Cap Low",
+    "Market Cap Drop",
+    "Short %"
 ]
 
 features = [f for f in features if f in df.columns]
