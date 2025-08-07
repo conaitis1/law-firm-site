@@ -481,54 +481,53 @@ with st.form("prediction_form"):
 
     submitted = st.form_submit_button("Predict")
 
+    df_model = df.copy()
 
 # === Run Prediction ===
+    # Additional filters for the predictive model
     if submitted:
-        if isinstance(user_input, dict):
-            user_input = [user_input]
+        st.markdown("#### Additional Predictive Filters")
 
-        input_df = pd.DataFrame(user_input)
+        input_df = df_model.copy()
+
+        if "Market Cap Drop" in input_df.columns:
+            market_cap_drop_range = st.slider("Market Cap Drop", min_value=0.0, max_value=100.0, value=(0.0, 100.0))
+            input_df = input_df[input_df["Market Cap Drop"].between(*market_cap_drop_range)]
+
+        if "Short %" in input_df.columns:
+            short_percent_range = st.slider("Short %", min_value=0.0, max_value=100.0, value=(0.0, 100.0))
+            input_df = input_df[input_df["Short %"].between(*short_percent_range)]
+
+        if "WHY SUED CATEGORY" in input_df.columns:
+            why_sued_options = input_df["WHY SUED CATEGORY"].dropna().unique().tolist()
+            why_sued_selection = st.selectbox("WHY SUED CATEGORY", ["Any"] + sorted(why_sued_options))
+            if why_sued_selection != "Any":
+                input_df = input_df[input_df["WHY SUED CATEGORY"] == why_sued_selection]
+
+# Continue with existing model input logic
         input_df.replace("None", np.nan, inplace=True)
         input_df.replace("", np.nan, inplace=True)
-        input_df = input_df.infer_objects()
+        input_df = input_df.convert_dtypes()
 
-    # Add missing columns with NaN
+# Fill missing columns
         for col in model.feature_names_in_:
             if col not in input_df.columns:
-                input_df[col] = np.nan
+            input_df[col] = np.nan
 
-    # Reorder columns to match model
-        input_df = input_df[list(model.feature_names_in_)]
+        input_df = input_df[model.feature_names_in_]
 
-        try:
-            # Ensure all missing columns are filled
-            input_df = input_df.fillna(0)
+# Predict
+        probs = model.predict_proba(input_df)[0]
+        labels = model.classes_
+        top_prediction = labels[np.argmax(probs)]
 
-            # Match dtypes with training features
-            for col in model.feature_names_in_:
-                if col in input_df.columns and input_df[col].dtype != type(model.feature_importances_[0]):
-                    input_df[col] = pd.to_numeric(input_df[col], errors='coerce').fillna(0)
+        st.subheader("🔮 Predicted Outcome")
+        col1, col2 = st.columns([1, 1])
 
-            # Predict
-            probs = model.predict_proba(input_df)[0]
-            labels = model.classes_
-            top_prediction = labels[np.argmax(probs)]
-
-            st.subheader("🔮 Predicted Outcome")
-
-            col1, col2 = st.columns([1, 1])
-
-            with col1:
-                fig, ax = plt.subplots(figsize=(4, 4), dpi=150)
-                ax.pie(
-                    probs,
-                    labels=labels,
-                    autopct="%1.1f%%",
-                    startangle=90,
-                    textprops={"fontsize": 8},
-                )
-                ax.axis("equal")
-                st.pyplot(fig, use_container_width=False, clear_figure=True)
+        with col1:
+            fig, ax = plt.subplots(figsize=(4, 4), dpi=150)
+            ax.pie(probs, labels=labels, autopct="%1.1f%%")
+            st.pyplot(fig)
 
             with col2:
                 st.metric("Most Likely Outcome", top_prediction, f"{np.max(probs)*100:.1f}% confidence")
