@@ -502,7 +502,9 @@ with st.form("prediction_form"):
                 input_df = input_df[input_df["Market Cap Drop"].between(*market_cap_range)]
 
     # Short % slider
+        df_full["Short %"] = pd.to_numeric(df_full["Short %"], errors="coerce")
         short_min, short_max = float(df_full["Short %"].min()), float(df_full["Short %"].max())
+
         with col2:
             use_short = st.checkbox("Filter by Short %")
             if use_short:
