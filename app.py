@@ -485,28 +485,40 @@ with st.form("prediction_form"):
 
 # === Run Prediction ===
     # Additional filters for the predictive model
+        # Start with full data for filtering
     if submitted:
+        input_df = df_full.copy()
 
-        input_df = df_model.copy()
+    # Apply prediction-only filters
+        col1, col2 = st.columns(2)
 
-        if "Market Cap Drop" in input_df.columns:
-            market_cap_drop_range = st.slider("Market Cap Drop", min_value=0.0, max_value=100.0, value=(0.0, 100.0))
-            input_df = input_df[input_df["Market Cap Drop"].between(*market_cap_drop_range)]
+        with col1:
+            if "Market Cap Drop" in input_df.columns:
+                market_cap_drop_range = st.slider("Market Cap Drop (%)", 0.0, 100.0, (0.0, 100.0))
+                input_df = input_df[input_df["Market Cap Drop"].between(*market_cap_drop_range)]
 
-        if "Short %" in input_df.columns:
-            short_percent_range = st.slider("Short %", min_value=0.0, max_value=100.0, value=(0.0, 100.0))
-            input_df = input_df[input_df["Short %"].between(*short_percent_range)]
+        with col2:
+            if "Short %" in input_df.columns:
+                short_percent_range = st.slider("Short %", 0.0, 100.0, (0.0, 100.0))
+                input_df = input_df[input_df["Short %"].between(*short_percent_range)]
 
-        if "WHY SUED CATEGORY" in input_df.columns:
-            why_sued_options = input_df["WHY SUED CATEGORY"].dropna().unique().tolist()
-            why_sued_selection = st.selectbox("WHY SUED CATEGORY", ["Any"] + sorted(why_sued_options))
-            if why_sued_selection != "Any":
-                input_df = input_df[input_df["WHY SUED CATEGORY"] == why_sued_selection]
+        with col1:
+            if "WHY SUED CATEGORY" in input_df.columns:
+                why_sued_options = input_df["WHY SUED CATEGORY"].dropna().unique().tolist()
+                why_sued_selection = st.selectbox("WHY SUED CATEGORY", ["Any"] + sorted(why_sued_options))
+                if why_sued_selection != "Any":
+                    input_df = input_df[input_df["WHY SUED CATEGORY"] == why_sued_selection]
 
-# Continue with existing model input logic
-        input_df.replace("None", np.nan, inplace=True)
-        input_df.replace("", np.nan, inplace=True)
-        input_df = input_df.convert_dtypes()
+    # Use median row if none left after filters
+        if input_df.empty:
+            input_df = df_full.copy()
+
+    # Apply user input
+        row_data = {}
+        for col in model.feature_names_in_:
+            row_data[col] = user_input.get(col, np.nan)
+        input_df = pd.DataFrame([row_data])
+
 
 # Fill missing columns
         for col in model.feature_names_in_:
