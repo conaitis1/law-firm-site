@@ -486,7 +486,6 @@ with st.form("prediction_form"):
 # === Run Prediction ===
     # Additional filters for the predictive model
     if submitted:
-        st.markdown("#### Additional Predictive Filters")
 
         input_df = df_model.copy()
 
