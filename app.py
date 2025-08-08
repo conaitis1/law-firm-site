@@ -489,34 +489,6 @@ with st.form("prediction_form"):
     if submitted:
         input_df = df_full.copy()
 
-    # === Optional filters BEFORE simulation row ===
-        st.markdown("### 🔧 Optional Predictive Filters (Optional)")
-        col1, col2 = st.columns(2)
-
-    # Market Cap Drop slider
-        market_cap_min, market_cap_max = float(df_full["Market Cap Drop"].min()), float(df_full["Market Cap Drop"].max())
-        with col1:
-            use_market_cap = st.checkbox("Filter by Market Cap Drop", key="market_cap_filter_unique")
-            if use_market_cap:
-                market_cap_range = st.slider("Market Cap Drop (%)", market_cap_min, market_cap_max, (market_cap_min, market_cap_max))
-                input_df = input_df[input_df["Market Cap Drop"].between(*market_cap_range)]
-
-    # Short % slider
-        df_full["Short %"] = pd.to_numeric(df_full["Short %"], errors="coerce")
-        short_min, short_max = float(df_full["Short %"].min()), float(df_full["Short %"].max())
-
-        with col2:
-            use_short = st.checkbox("Filter by Short %")
-            if use_short:
-                short_range = st.slider("Short %", short_min, short_max, (short_min, short_max))
-                input_df = input_df[input_df["Short %"].between(*short_range)]
-
-    # WHY SUED CATEGORY filter
-        with col1:
-            why_sued_options = df_full["WHY SUED CATEGORY"].dropna().unique().tolist()
-            why_sued_selection = st.selectbox("WHY SUED CATEGORY", ["Any"] + sorted(why_sued_options))
-            if why_sued_selection != "Any":
-                input_df = input_df[input_df["WHY SUED CATEGORY"] == why_sued_selection]
 
     # Handle empty case
         if input_df.empty:
