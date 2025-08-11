@@ -41,7 +41,13 @@ features = [
     "Institutional Ownership",
     "Prior Year Revenue (TTM)",
     "WHY SUED CATEGORY",     # single-label
-    "Short %",               # single numeric
+    "Short %",
+    "SECAction",
+    "IPO",
+    "Laddering",
+    "Transactional",
+    "10B 5",  
+    "SEC 11"         # single numeric
 ]
 
 features = [f for f in features if f in df.columns]
