@@ -42,8 +42,8 @@ features = [
     "Prior Year Revenue (TTM)",
     "WHY SUED CATEGORY",     # single-label
     "Short %",
-    "SECAction",
-    "IPO",
+    "SECActionYN",
+    "IPO_YN",
     "Laddering",
     "Transactional",
     "10B 5",  
@@ -54,6 +54,9 @@ features = [f for f in features if f in df.columns]
 X = df[features].copy()
 y = df["TargetStatus"]
 
+for col in ["SECAction","IPO","Laddering","Transactional","10B 5","SEC 11"]:
+    if col in X.columns:
+        X[col] = X[col].replace({True:1, False:0, "Yes":1, "No":0, 1:1, 0:0}).fillna(0).astype(int)
 # === Reduce cardinality + encode
 high_card_cols = ["FederalJudge_legal", "FederalCourt_legal", "PlaintiffFirm_legal", "DefendantFirm_legal", "SICCode_legal"]
 for col in high_card_cols:
