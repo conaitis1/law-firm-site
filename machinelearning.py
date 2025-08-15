@@ -47,7 +47,8 @@ features = [
     "Laddering",
     "Transactional",
     "10B 5",  
-    "SEC 11"         # single numeric
+    "SEC 11",
+    "Total Cash"        # single numeric
 ]
 
 features = [f for f in features if f in df.columns]
@@ -70,7 +71,7 @@ if "WHY SUED CATEGORY" in X.columns:
     X["WHY SUED CATEGORY"] = LabelEncoder().fit_transform(X["WHY SUED CATEGORY"].astype(str))
 
 # === Force numeric
-for col in ["Prior Year Revenue (TTM)", "Current Ratio", "Short %", "Market Cap Drop"]:
+for col in ["Prior Year Revenue (TTM)", "Current Ratio", "Short %", "Market Cap Drop", "Total Cash"]:
     if col in X.columns:
         X[col] = pd.to_numeric(X[col], errors="coerce")
 
