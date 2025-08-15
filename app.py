@@ -460,6 +460,10 @@ display_names = {
     "FederalCourt_legal": "Federal Court",
     "SICCode_legal": "SIC Code",
 }
+# --- Force key numeric columns to numeric so sliders appear ---
+for _col in ["Total Cash", "Current Ratio", "Prior Year Revenue (TTM)", "Short %"]:
+    if _col in df_full.columns:
+        df_full[_col] = pd.to_numeric(df_full[_col], errors="coerce")
 
 # ===== Prediction Section =====
 import numpy as np
