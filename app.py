@@ -462,11 +462,16 @@ display_names = {
 }
 
 # ===== Prediction Section =====
+import numpy as np
+import pandas as pd
+import plotly.express as px
+import streamlit as st
+
 st.header("Predict Case Outcome")
 
 WHY_KEY = "WHY SUED CATEGORY"
 
-# Multiselect for WHY SUED CATEGORY
+# --- Multi-select for WHY SUED CATEGORY (up to 4) ---
 selected_why = []
 if WHY_KEY in df_full.columns:
     why_all = sorted(df_full[WHY_KEY].dropna().astype(str).unique())
@@ -479,54 +484,63 @@ if WHY_KEY in df_full.columns:
         st.warning("You selected more than 4 categories; only the first 4 will be used.")
         selected_why = selected_why[:4]
 
-# Start prediction form
+# --- Prediction form ---
 with st.form("prediction_form"):
     row_data = {}
-    for feature in model.feature_names_in_:
+    col1, col2 = st.columns(2)
+
+    # Only build inputs for columns the model actually expects
+    for i, feature in enumerate(model.feature_names_in_):
         if feature not in df_full.columns:
             continue
         if feature == WHY_KEY:
-            # Skip regular control for WHY SUED CATEGORY — handled above
+            # handled by the multiselect above
             continue
 
-        # Handle categorical vs numerical
-        if df_full[feature].dtype == 'object' or df_full[feature].nunique() < 20:
-            options = sorted(df_full[feature].dropna().astype(str).unique())
-            selected = st.selectbox(f"{feature}", options=options)
-            row_data[feature] = selected
-        else:
-            min_val = float(df_full[feature].min())
-            max_val = float(df_full[feature].max())
-            val = st.slider(f"{feature}", min_val, max_val, float(df_full[feature].mean()))
-            row_data[feature] = val
+        col = col1 if i % 2 == 0 else col2
+        series = df_full[feature]
+
+        # ---- Numeric with checkbox-gated slider ----
+        if pd.api.types.is_numeric_dtype(series):
+            toggle = col.checkbox(f"Filter by {feature}")
+            if toggle:
+                col_series = pd.to_numeric(series, errors="coerce")
+                mn = float(col_series.min())
+                mx = float(col_series.max())
+                md = float(col_series.median())
+                val = col.slider(feature, mn, mx, md)
+                row_data[feature] = val
+            else:
+                # leave unset so it won't constrain prediction
+                row_data[feature] = None
+            continue
+
+        # ---- Categorical/Text ----
+        options = ["Select..."] + sorted(series.dropna().astype(str).unique().tolist())
+        sel = col.selectbox(feature, options, index=0)
+        row_data[feature] = None if sel == "Select..." else sel
 
     submitted = st.form_submit_button("Predict")
 
-# Historical data filtering for charts/tables
-filtered_df_pred = df_full.copy()
-for k, v in row_data.items():
-    if k in filtered_df_pred.columns:
-        filtered_df_pred = filtered_df_pred[filtered_df_pred[k].astype(str) == str(v)]
-if WHY_KEY in filtered_df_pred.columns and selected_why:
-    filtered_df_pred = filtered_df_pred[filtered_df_pred[WHY_KEY].astype(str).isin(selected_why)]
+# --- Helper: run a single prediction for a given row_data dict ---
+def _predict_for_row(row_dict):
+    df_row = pd.DataFrame([row_dict])
+    df_row_enc = pd.get_dummies(df_row)
 
-# Prediction logic
+    # Ensure every expected feature exists
+    for colname in model.feature_names_in_:
+        if colname not in df_row_enc.columns:
+            df_row_enc[colname] = 0
+
+    # Exact column order match
+    df_row_enc = df_row_enc[model.feature_names_in_]
+
+    probs = model.predict_proba(df_row_enc)[0]
+    labels = model.classes_
+    return probs, labels
+
+# --- Do prediction(s) ---
 if submitted:
-    import numpy as np
-    import pandas as pd
-
-    def predict_for_row(row_dict):
-        df_row = pd.DataFrame([row_dict])
-        df_row_enc = pd.get_dummies(df_row)
-        # Add any missing columns expected by the model
-        for colname in model.feature_names_in_:
-            if colname not in df_row_enc.columns:
-                df_row_enc[colname] = 0
-        df_row_enc = df_row_enc[model.feature_names_in_]
-        probs = model.predict_proba(df_row_enc)[0]
-        labels = model.classes_
-        return probs, labels
-
     probs_list = []
     labels = None
 
@@ -534,26 +548,24 @@ if submitted:
         for why_val in selected_why:
             rd = row_data.copy()
             rd[WHY_KEY] = why_val
-            p, labels = predict_for_row(rd)
+            p, labels = _predict_for_row(rd)
             probs_list.append(p)
     else:
-        p, labels = predict_for_row(row_data)
+        p, labels = _predict_for_row(row_data)
         probs_list.append(p)
 
     probs = np.mean(np.vstack(probs_list), axis=0)
-    top_prediction = labels[np.argmax(probs)]
+    top_prediction = labels[int(np.argmax(probs))]
 
-    # Show results
+    # --- Output ---
     st.subheader("Prediction")
     st.write(f"**Predicted Outcome:** {top_prediction}")
     st.write("**Probability Distribution:**")
     st.write({label: f"{prob*100:.1f}%" for label, prob in zip(labels, probs)})
 
-    # Pie chart of prediction
     fig_pred = px.pie(
-        values=probs,
         names=labels,
-        title="Predicted Outcome Distribution",
-        color_discrete_sequence=px.colors.qualitative.Set3
+        values=probs,
+        title="Predicted Outcome Distribution"
     )
-    st.plotly_chart(fig_pred)
+    st.plotly_chart(fig_pred, use_container_width=True)
