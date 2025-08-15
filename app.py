@@ -397,10 +397,6 @@ import joblib
 import numpy as np
 import pandas as pd
 import streamlit as st
-
-st.markdown("## 📈 Predict Case Outcome Based on Inputs")
-st.markdown("Use the filters below to simulate a new case and predict its likely outcome.")
-
 # Load model
 model = joblib.load("rf_model.joblib")
 features = list(model.feature_names_in_)
@@ -471,7 +467,6 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-st.header("Predict Case Outcome")
 
 WHY_KEY = "WHY SUED CATEGORY"
 
