@@ -5,3 +5,4 @@ streamlit-aggrid
 matplotlib
 joblib
 scikit-learn
+plotly==6.3.0
