@@ -461,111 +461,99 @@ display_names = {
     "SICCode_legal": "SIC Code",
 }
 
+# ===== Prediction Section =====
+st.header("Predict Case Outcome")
+
+WHY_KEY = "WHY SUED CATEGORY"
+
+# Multiselect for WHY SUED CATEGORY
+selected_why = []
+if WHY_KEY in df_full.columns:
+    why_all = sorted(df_full[WHY_KEY].dropna().astype(str).unique())
+    selected_why = st.multiselect(
+        "WHY SUED CATEGORY (select up to 4)",
+        why_all,
+        default=[]
+    )
+    if len(selected_why) > 4:
+        st.warning("You selected more than 4 categories; only the first 4 will be used.")
+        selected_why = selected_why[:4]
+
+# Start prediction form
 with st.form("prediction_form"):
-    user_input = {}
-    col1, col2 = st.columns(2)
-
-    # Only build controls for features the model actually expects
-    for i, feature in enumerate(model.feature_names_in_):
+    row_data = {}
+    for feature in model.feature_names_in_:
         if feature not in df_full.columns:
-            # Feature might be one-hot created later; skip direct control
+            continue
+        if feature == WHY_KEY:
+            # Skip regular control for WHY SUED CATEGORY — handled above
             continue
 
-        col = col1 if i % 2 == 0 else col2
-        label = display_names.get(feature, feature.replace("_", " "))
-        dtype = df_full[feature].dtype
-
-        # ---- High-card (judge/court/firms/SIC) -> top20 + "Other" -> LabelEncode to int ----
-        if feature in HIGH_CARD and feature in encoders:
-            opts = ["Select..."] + sorted(top20[feature]) + ["Other"]
-            sel = col.selectbox(label, opts, index=0)
-            if sel == "Select...":
-                enc_val = encoders[feature].transform(["Other"])[0]
-            else:
-                sel = sel if sel in top20[feature] else "Other"
-                enc_val = encoders[feature].transform([sel])[0]
-            user_input[feature] = int(enc_val)
-            continue
-
-        # ---- Binary tags -> Yes/No -> 1/0 ----
-        if feature in BINARY_TAGS:
-            choice = col.selectbox(label, ["Select...", "Yes", "No"], index=0)
-            user_input[feature] = None if choice == "Select..." else (1 if choice == "Yes" else 0)
-            continue
-
-        # ---- Regular categorical ----
-        if dtype == "object" or getattr(dtype, "name", "") == "category":
-            if feature == "Prior Year Revenue (TTM)":
-                raw_vals = sorted(pd.to_numeric(df_full[feature], errors="coerce").dropna().unique())
-                options = ["Select..."] + [f"${v:,.0f}" for v in raw_vals]
-                display_to_value = dict(zip([f"${v:,.0f}" for v in raw_vals], raw_vals))
-                val = col.selectbox(label, options, index=0)
-                user_input[feature] = None if val == "Select..." else display_to_value[val]
-            else:
-                options = ["Select..."] + sorted(set(str(v) for v in df_full[feature].dropna().unique()))
-                val = col.selectbox(label, options, index=0)
-                user_input[feature] = None if val == "Select..." else val
-            continue
-
-        # ---- Boolean ----
-        if pd.api.types.is_bool_dtype(dtype):
-            user_input[feature] = bool(col.checkbox(label))
-            continue
-
-        # ---- Numeric (checkbox-gated slider like your original) ----
-        if pd.api.types.is_numeric_dtype(dtype):
-            toggle = col.checkbox(f"Filter by {label}")
-            if toggle:
-                mn = float(pd.to_numeric(df_full[feature], errors="coerce").min())
-                mx = float(pd.to_numeric(df_full[feature], errors="coerce").max())
-                md = float(pd.to_numeric(df_full[feature], errors="coerce").median())
-                user_input[feature] = col.slider(label, mn, mx, md)
-            else:
-                user_input[feature] = None
-            continue
+        # Handle categorical vs numerical
+        if df_full[feature].dtype == 'object' or df_full[feature].nunique() < 20:
+            options = sorted(df_full[feature].dropna().astype(str).unique())
+            selected = st.selectbox(f"{feature}", options=options)
+            row_data[feature] = selected
+        else:
+            min_val = float(df_full[feature].min())
+            max_val = float(df_full[feature].max())
+            val = st.slider(f"{feature}", min_val, max_val, float(df_full[feature].mean()))
+            row_data[feature] = val
 
     submitted = st.form_submit_button("Predict")
 
-# === Run Prediction ===
+# Historical data filtering for charts/tables
+filtered_df_pred = df_full.copy()
+for k, v in row_data.items():
+    if k in filtered_df_pred.columns:
+        filtered_df_pred = filtered_df_pred[filtered_df_pred[k].astype(str) == str(v)]
+if WHY_KEY in filtered_df_pred.columns and selected_why:
+    filtered_df_pred = filtered_df_pred[filtered_df_pred[WHY_KEY].astype(str).isin(selected_why)]
+
+# Prediction logic
 if submitted:
-    # Build one-row DataFrame with exactly the model's features
-    row_data = {}
-    for colname in model.feature_names_in_:
-        # Use user's choice when present; otherwise NaN/0 is fine (we'll align below)
-        row_data[colname] = user_input.get(colname, np.nan)
+    import numpy as np
+    import pandas as pd
 
-    input_df = pd.DataFrame([row_data])
-
-    try:
-        # One-hot any remaining categorical fields (binary tags will remain numeric 1/0)
-        input_df_encoded = pd.get_dummies(input_df)
-
-        # Ensure every expected feature exists
+    def predict_for_row(row_dict):
+        df_row = pd.DataFrame([row_dict])
+        df_row_enc = pd.get_dummies(df_row)
+        # Add any missing columns expected by the model
         for colname in model.feature_names_in_:
-            if colname not in input_df_encoded.columns:
-                input_df_encoded[colname] = 0
-
-        # Exact column order match
-        input_df_encoded = input_df_encoded[model.feature_names_in_]
-
-        # Predict
-        probs = model.predict_proba(input_df_encoded)[0]
+            if colname not in df_row_enc.columns:
+                df_row_enc[colname] = 0
+        df_row_enc = df_row_enc[model.feature_names_in_]
+        probs = model.predict_proba(df_row_enc)[0]
         labels = model.classes_
-        top_prediction = labels[np.argmax(probs)]
+        return probs, labels
 
-        st.subheader("Predicted Outcome")
-        c1, c2 = st.columns([1, 1])
-        with c1:
-            fig, ax = plt.subplots(figsize=(4, 4), dpi=150)
-            ax.pie(probs, labels=labels, autopct='%1.1f%%', startangle=140)
-            ax.axis("equal")
-            st.pyplot(fig)
-        with c2:
-            st.metric("Top Predicted Outcome", top_prediction)
+    probs_list = []
+    labels = None
 
-        # DEBUG (optional): uncomment if you want to verify column presence
-        # st.write("Encoded columns present:", list(input_df_encoded.columns))
+    if selected_why:
+        for why_val in selected_why:
+            rd = row_data.copy()
+            rd[WHY_KEY] = why_val
+            p, labels = predict_for_row(rd)
+            probs_list.append(p)
+    else:
+        p, labels = predict_for_row(row_data)
+        probs_list.append(p)
 
-    except Exception as e:
-        st.error(f"Prediction failed: {e}")
-# ===================== END PREDICTION UI + LOGIC (DROP-IN) =====================
+    probs = np.mean(np.vstack(probs_list), axis=0)
+    top_prediction = labels[np.argmax(probs)]
+
+    # Show results
+    st.subheader("Prediction")
+    st.write(f"**Predicted Outcome:** {top_prediction}")
+    st.write("**Probability Distribution:**")
+    st.write({label: f"{prob*100:.1f}%" for label, prob in zip(labels, probs)})
+
+    # Pie chart of prediction
+    fig_pred = px.pie(
+        values=probs,
+        names=labels,
+        title="Predicted Outcome Distribution",
+        color_discrete_sequence=px.colors.qualitative.Set3
+    )
+    st.plotly_chart(fig_pred)
